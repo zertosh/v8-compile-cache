@@ -2,13 +2,14 @@
   "name": "v8-compile-cache",
   "version": "0.0.0",
   "description": "Require hook for automatic V8 compile cache persistence",
-  "main": "index.js",
+  "main": "v8-compile-cache.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Andres Suarez <zertosh@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "cached-run-in-this-context": "0.4.1"
+    "cached-run-in-this-context": "0.4.1",
+    "mkdirp": "0.5.1"
   }
 }
