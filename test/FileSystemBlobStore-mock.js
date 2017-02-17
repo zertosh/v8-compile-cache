@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = class FileSystemBlobStoreMock {
-  constructor(directory) {
+  constructor() {
     this._cachedFiles = [];
   }
 
@@ -12,9 +12,11 @@ module.exports = class FileSystemBlobStoreMock {
   }
 
   get(key, invalidationKey) {
-    return this._cachedFiles.find(
-      file => file.key === key && file.invalidationKey === invalidationKey
-    );
+    if (this.has(key, invalidationKey)) {
+      return this._cachedFiles.find(
+        file => file.key === key && file.invalidationKey === invalidationKey
+      ).buffer;
+    }
   }
 
   set(key, invalidationKey, buffer) {

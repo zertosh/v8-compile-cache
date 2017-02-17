@@ -1,123 +1,117 @@
-/* eslint max-len: 0, no-shadow: [1, {allow: ['t']}] */
+/* eslint max-len: 0 */
 'use strict';
 
+const Module = require('module');
 const fs = require('fs');
 const path = require('path');
-const Module = require('module');
+const tap = require('tap');
 const temp = require('temp');
 
 temp.track();
 
-const FileSystemBlobStore = require('../FileSystemBlobStore');
+const FileSystemBlobStore_mock = require('./FileSystemBlobStore-mock');
 const nativeCompileCache = require('../NativeCompileCache');
 
-describe('NativeCompileCache', () => {
-  let fakeCacheStore;
-  let cachedFiles;
-  let fakeCachePath;
+let cachedFiles;
+let fakeCacheStore;
 
-  beforeEach(cb => {
-    fakeCachePath = temp.path('native-compile-cache-test');
-    fakeCacheStore = new FileSystemBlobStore(fakeCachePath);
-    cachedFiles = fakeCacheStore._cachedFiles;
-    nativeCompileCache.setCacheStore(fakeCacheStore);
-    nativeCompileCache.setV8Version('a-v8-version');
-    nativeCompileCache.install();
-    cb();
-  });
+tap.beforeEach(cb => {
+  fakeCacheStore = new FileSystemBlobStore_mock();
+  cachedFiles = fakeCacheStore._cachedFiles;
+  nativeCompileCache.setCacheStore(fakeCacheStore);
+  nativeCompileCache.setV8Version('a-v8-version');
+  nativeCompileCache.install();
+  cb();
+});
 
-  afterEach(cb => {
-    nativeCompileCache.restorePreviousModuleCompile();
-    cb();
-  });
+tap.afterEach(cb => {
+  nativeCompileCache.restorePreviousModuleCompile();
+  cb();
+});
 
-  it('writes and reads from the cache storage when requiring files', () => {
-    let fn1 = require('./fixtures/file-1');
-    const fn2 = require('./fixtures/file-2');
+tap.test('writes and reads from the cache storage when requiring files', t => {
+  let fn1 = require('./fixtures/file-1');
+  const fn2 = require('./fixtures/file-2');
 
-    expect(cachedFiles.length).toBe(2);
+  t.equal(cachedFiles.length, 2);
 
+  t.equal(cachedFiles[0].key, require.resolve('./fixtures/file-1'));
+  t.type(cachedFiles[0].buffer, Uint8Array);
+  t.ok(cachedFiles[0].buffer.length > 0);
+  t.equal(fn1(), 1);
 
-    expect(cachedFiles[0].cacheKey).toBe(require.resolve('./fixtures/file-1'));
-    expect(cachedFiles[0].cacheBuffer).toBeInstanceOf(Uint8Array);
-    expect(cachedFiles[0].cacheBuffer.length).toBeGreaterThan(0);
-    expect(fn1()).toBe(1);
+  t.equal(cachedFiles[1].key, require.resolve('./fixtures/file-2'));
+  t.type(cachedFiles[1].buffer, Uint8Array);
+  t.ok(cachedFiles[1].buffer.length > 0);
+  t.equal(fn2(), 2);
 
-    expect(cachedFiles[1].cacheKey).toBe(require.resolve('./fixtures/file-2'));
-    expect(cachedFiles[1].cacheBuffer).toBeInstanceOf(Uint8Array);
-    expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0);
-    expect(fn2()).toBe(2);
+  delete Module._cache[require.resolve('./fixtures/file-1')];
+  fn1 = require('./fixtures/file-1');
+  t.equal(cachedFiles.length, 2);
+  t.equal(fn1(), 1);
 
-    delete Module._cache[require.resolve('./fixtures/file-1')];
-    fn1 = require('./fixtures/file-1');
-    expect(cachedFiles.length).toBe(2);
-    expect(fn1()).toBe(1);
-  });
+  t.end();
+});
 
-  describe('when v8 version changes', () => {
-    it('updates the cache of previously required files', () => {
-      nativeCompileCache.setV8Version('version-1');
-      let fn4 = require('./fixtures/file-4');
+tap.test('when v8 version changes it updates the cache of previously required files', t => {
+  nativeCompileCache.setV8Version('version-1');
+  let fn4 = require('./fixtures/file-4');
 
-      expect(cachedFiles.length).toBe(1);
-      expect(cachedFiles[0].cacheKey).toBe(require.resolve('./fixtures/file-4'));
-      expect(cachedFiles[0].cacheBuffer).toBeInstanceOf(Uint8Array);
-      expect(cachedFiles[0].cacheBuffer.length).toBeGreaterThan(0);
-      expect(fn4()).toBe('file-4');
+  t.equal(cachedFiles.length, 1);
+  t.equal(cachedFiles[0].key, require.resolve('./fixtures/file-4'));
+  t.type(cachedFiles[0].buffer, Uint8Array);
+  t.ok(cachedFiles[0].buffer.length > 0);
+  t.equal(fn4(), 'file-4');
 
-      nativeCompileCache.setV8Version('version-2');
-      delete Module._cache[require.resolve('./fixtures/file-4')];
-      fn4 = require('./fixtures/file-4');
+  nativeCompileCache.setV8Version('version-2');
+  delete Module._cache[require.resolve('./fixtures/file-4')];
+  fn4 = require('./fixtures/file-4');
 
-      expect(cachedFiles.length).toBe(2);
-      expect(cachedFiles[1].cacheKey).toBe(require.resolve('./fixtures/file-4'));
-      expect(cachedFiles[1].invalidationKey).not.toBe(cachedFiles[0].invalidationKey);
-      expect(cachedFiles[1].cacheBuffer).toBeInstanceOf(Uint8Array);
-      expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0);
-    });
-  });
+  t.equal(cachedFiles.length, 2);
+  t.equal(cachedFiles[1].key, require.resolve('./fixtures/file-4'));
+  t.notEqual(cachedFiles[1].invalidationKey, cachedFiles[0].invalidationKey);
+  t.type(cachedFiles[1].buffer, Uint8Array);
+  t.ok(cachedFiles[1].buffer.length > 0);
 
-  describe('when a previously required and cached file changes', () => {
-    beforeEach(() => {
-      fs.writeFileSync(
-        path.resolve(__dirname + '/fixtures/file-5'),
-        `\
-    }
-module.exports = function () { return 'file-5' }\
-`
-      );
-    });
+  t.end();
+});
 
-    afterEach(() => fs.unlinkSync(path.resolve(__dirname + '/fixtures/file-5')));
+tap.test('deletes previously cached code when the cache is an invalid file', t => {
+  fakeCacheStore.has = () => true;
+  fakeCacheStore.get = () => new Buffer('an invalid cache');
+  let deleteWasCalledWith = null;
+  fakeCacheStore.delete = arg => { deleteWasCalledWith = arg; };
 
-    it('removes it from the store and re-inserts it with the new cache', () => {
-      let fn5 = require('./fixtures/file-5');
+  const fn3 = require('./fixtures/file-3');
 
-      expect(cachedFiles.length).toBe(1);
-      expect(cachedFiles[0].cacheKey).toBe(require.resolve('./fixtures/file-5'));
-      expect(cachedFiles[0].cacheBuffer).toBeInstanceOf(Uint8Array);
-      expect(cachedFiles[0].cacheBuffer.length).toBeGreaterThan(0);
-      expect(fn5()).toBe('file-5');
+  t.equal(deleteWasCalledWith, require.resolve('./fixtures/file-3'));
+  t.equal(fn3(), 3);
 
-      delete Module._cache[require.resolve('./fixtures/file-5')];
-      fs.appendFileSync(require.resolve('./fixtures/file-5'), '\n\n');
-      fn5 = require('./fixtures/file-5');
+  t.end();
+});
 
-      expect(cachedFiles.length).toBe(2);
-      expect(cachedFiles[1].cacheKey).toBe(require.resolve('./fixtures/file-5'));
-      expect(cachedFiles[1].invalidationKey).not.toBe(cachedFiles[0].invalidationKey);
-      expect(cachedFiles[1].cacheBuffer).toBeInstanceOf(Uint8Array);
-      expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0);
-    });
-  });
+tap.test('when a previously required and cached file changes removes it from the store and re-inserts it with the new cache', t => {
+  const tmpDir = temp.mkdirSync('native-compile-cache-test');
+  const tmpFile = path.join(tmpDir, 'file-5.js');
+  fs.writeFileSync(tmpFile, 'module.exports = () => `file-5`;');
 
-  it('deletes previously cached code when the cache is an invalid file', () => {
-    fakeCacheStore.has.andReturn(true);
-    fakeCacheStore.get.andCallFake(() => new Buffer('an invalid cache'));
+  let fn5 = require(tmpFile);
 
-    const fn3 = require('./fixtures/file-3');
+  t.equal(cachedFiles.length, 1);
+  t.equal(cachedFiles[0].key, require.resolve(tmpFile));
+  t.type(cachedFiles[0].buffer, Uint8Array);
+  t.ok(cachedFiles[0].buffer.length > 0);
+  t.equal(fn5(), 'file-5');
 
-    expect(fakeCacheStore.delete).toHaveBeenCalledWith(require.resolve('./fixtures/file-3'));
-    expect(fn3()).toBe(3);
-  });
+  delete Module._cache[require.resolve(tmpFile)];
+  fs.appendFileSync(tmpFile, '\n\n');
+  fn5 = require(tmpFile);
+
+  t.equal(cachedFiles.length, 2);
+  t.equal(cachedFiles[1].key, require.resolve(tmpFile));
+  t.notEqual(cachedFiles[1].invalidationKey, cachedFiles[0].invalidationKey);
+  t.type(cachedFiles[1].buffer, Uint8Array);
+  t.ok(cachedFiles[1].buffer.length > 0);
+
+  t.end();
 });
