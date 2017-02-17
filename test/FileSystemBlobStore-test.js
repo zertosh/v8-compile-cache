@@ -1,10 +1,10 @@
-/* eslint max-len: 0, no-shadow: [1, {allow: ['t']}] */
+/* eslint max-len: 0 */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
 const rimraf = require('rimraf');
-const t = require('tap');
+const tap = require('tap');
 const temp = require('temp');
 
 const FileSystemBlobStore = require('../FileSystemBlobStore');
@@ -14,24 +14,24 @@ temp.track();
 let storageDirectory;
 let blobStore;
 
-t.beforeEach(cb => {
+tap.beforeEach(cb => {
   storageDirectory = temp.path('atom-spec-filesystemblobstore');
   blobStore = FileSystemBlobStore.load(storageDirectory);
   cb();
 });
 
-t.afterEach(cb => {
+tap.afterEach(cb => {
   rimraf.sync(storageDirectory);
   cb();
 });
 
-t.test('is empty when the file doesn\'t exist', t => {
+tap.test('is empty when the file doesn\'t exist', t => {
   t.type(blobStore.get('foo', 'invalidation-key-1'), 'undefined');
   t.type(blobStore.get('bar', 'invalidation-key-2'), 'undefined');
   t.end();
 });
 
-t.test('allows to read and write buffers from/to memory without persisting them', t => {
+tap.test('allows to read and write buffers from/to memory without persisting them', t => {
   blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
   blobStore.set('bar', 'invalidation-key-2', new Buffer('bar'));
 
@@ -44,7 +44,7 @@ t.test('allows to read and write buffers from/to memory without persisting them'
   t.end();
 });
 
-t.test('persists buffers when saved and retrieves them on load, giving priority to in-memory ones', t => {
+tap.test('persists buffers when saved and retrieves them on load, giving priority to in-memory ones', t => {
   blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
   blobStore.set('bar', 'invalidation-key-2', new Buffer('bar'));
   blobStore.save();
@@ -64,7 +64,7 @@ t.test('persists buffers when saved and retrieves them on load, giving priority 
   t.done();
 });
 
-t.test('persists both in-memory and previously stored buffers when saved', t => {
+tap.test('persists both in-memory and previously stored buffers when saved', t => {
   blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
   blobStore.set('bar', 'invalidation-key-2', new Buffer('bar'));
   blobStore.save();
@@ -86,7 +86,7 @@ t.test('persists both in-memory and previously stored buffers when saved', t => 
   t.end();
 });
 
-t.test('allows to delete keys from both memory and stored buffers', t => {
+tap.test('allows to delete keys from both memory and stored buffers', t => {
   blobStore.set('a', 'invalidation-key-1', new Buffer('a'));
   blobStore.set('b', 'invalidation-key-2', new Buffer('b'));
   blobStore.save();
@@ -109,7 +109,7 @@ t.test('allows to delete keys from both memory and stored buffers', t => {
   t.end();
 });
 
-t.test('ignores errors when loading an invalid blob store', t => {
+tap.test('ignores errors when loading an invalid blob store', t => {
   blobStore.set('a', 'invalidation-key-1', new Buffer('a'));
   blobStore.set('b', 'invalidation-key-2', new Buffer('b'));
   blobStore.save();
