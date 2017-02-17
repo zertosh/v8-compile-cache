@@ -117,7 +117,6 @@ tap.test('ignores errors when loading an invalid blob store', t => {
 
   // Simulate corruption
   fs.writeFileSync(path.join(storageDirectory, 'MAP'), new Buffer([0]));
-  fs.writeFileSync(path.join(storageDirectory, 'INVKEYS'), new Buffer([0]));
   fs.writeFileSync(path.join(storageDirectory, 'BLOB'), new Buffer([0]));
 
   blobStore = new FileSystemBlobStore(storageDirectory);
