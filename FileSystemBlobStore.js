@@ -16,9 +16,7 @@ module.exports = class FileSystemBlobStore {
   }
 
   has(key, invalidationKey) {
-    const containsKey =
-      this._inMemoryBlobs.has(key) ||
-      this._storedBlobMap.hasOwnProperty(key);
+    const containsKey = this._inMemoryBlobs[key] || this._storedBlobMap[key];
     const isValid = this._invalidationKeys[key] === invalidationKey;
     return containsKey && isValid;
   }
@@ -31,11 +29,11 @@ module.exports = class FileSystemBlobStore {
 
   set(key, invalidationKey, buffer) {
     this._invalidationKeys[key] = invalidationKey;
-    return this._inMemoryBlobs.set(key, buffer);
+    this._inMemoryBlobs[key] = buffer;
   }
 
   delete(key) {
-    this._inMemoryBlobs.delete(key);
+    delete this._inMemoryBlobs[key];
     delete this._invalidationKeys[key];
     delete this._storedBlobMap[key];
   }
@@ -67,10 +65,10 @@ module.exports = class FileSystemBlobStore {
   }
 
   _reset() {
-    this._inMemoryBlobs = new Map();
-    this._invalidationKeys = {};
+    this._inMemoryBlobs = Object.create(null);
+    this._invalidationKeys = Object.create(null);
     this._storedBlob = new Buffer(0);
-    this._storedBlobMap = {};
+    this._storedBlobMap = Object.create(null);
   }
 
   _load() {
@@ -97,20 +95,19 @@ module.exports = class FileSystemBlobStore {
   }
 
   _getFromMemory(key) {
-    return this._inMemoryBlobs.get(key);
+    return this._inMemoryBlobs[key];
   }
 
   _getFromStorage(key) {
-    if (!this._storedBlobMap[key]) {
-      return;
+    const blobMap = this._storedBlobMap[key];
+    if (blobMap) {
+      return this._storedBlob.slice(blobMap[0], blobMap[1]);
     }
-    const [start, end] = this._storedBlobMap[key];
-    return this._storedBlob.slice(start, end);
   }
 
   _getDump() {
     const buffers = [];
-    const blobMap = {};
+    const blobMap = Object.create(null);
     let currentBufferStart = 0;
 
     function dump(key, getBufferByKey) {
@@ -120,7 +117,7 @@ module.exports = class FileSystemBlobStore {
       currentBufferStart += buffer.length;
     }
 
-    for (const key of this._inMemoryBlobs.keys()) {
+    for (const key of Object.keys(this._inMemoryBlobs)) {
       dump(key, this._getFromMemory.bind(this));
     }
 
