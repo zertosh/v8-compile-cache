@@ -4,14 +4,11 @@
   "description": "Require hook for automatic V8 compile cache persistence",
   "main": "v8-compile-cache.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Andres Suarez <zertosh@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "cached-run-in-this-context": "0.4.1",
-    "mkdirp": "0.5.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "jest": "^18.1.0",
     "rimraf": "^2.5.4",
