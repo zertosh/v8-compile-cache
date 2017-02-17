@@ -1,135 +1,136 @@
-'use strict'
+'use strict';
 
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
+const path = require('path');
 const mkdirpSync = require('./mkdirpSync');
 
-module.exports =
-class FileSystemBlobStore {
-  static load (directory) {
-    let instance = new FileSystemBlobStore(directory)
-    instance.load()
-    return instance
+module.exports = class FileSystemBlobStore {
+  static load(directory) {
+    const instance = new FileSystemBlobStore(directory);
+    instance.load();
+    return instance;
   }
 
-  constructor (directory) {
-    this.blobFilename = path.join(directory, 'BLOB')
-    this.blobMapFilename = path.join(directory, 'MAP')
-    this.invalidationKeysFilename = path.join(directory, 'INVKEYS')
-    this.lockFilename = path.join(directory, 'LOCK')
-    mkdirpSync(directory)
-    this.reset()
+  constructor(directory) {
+    this.blobFilename = path.join(directory, 'BLOB');
+    this.blobMapFilename = path.join(directory, 'MAP');
+    this.invalidationKeysFilename = path.join(directory, 'INVKEYS');
+    this.lockFilename = path.join(directory, 'LOCK');
+    mkdirpSync(directory);
+    this.reset();
   }
 
-  reset () {
-    this.inMemoryBlobs = new Map()
-    this.invalidationKeys = {}
-    this.storedBlob = new Buffer(0)
-    this.storedBlobMap = {}
+  reset() {
+    this.inMemoryBlobs = new Map();
+    this.invalidationKeys = {};
+    this.storedBlob = new Buffer(0);
+    this.storedBlobMap = {};
   }
 
-  load () {
+  load() {
     if (!fs.existsSync(this.blobMapFilename)) {
-      return
+      return;
     }
     if (!fs.existsSync(this.blobFilename)) {
-      return
+      return;
     }
     if (!fs.existsSync(this.invalidationKeysFilename)) {
-      return
+      return;
     }
 
     try {
-      this.storedBlob = fs.readFileSync(this.blobFilename)
-      this.storedBlobMap = JSON.parse(fs.readFileSync(this.blobMapFilename))
-      this.invalidationKeys = JSON.parse(fs.readFileSync(this.invalidationKeysFilename))
+      this.storedBlob = fs.readFileSync(this.blobFilename);
+      this.storedBlobMap = JSON.parse(fs.readFileSync(this.blobMapFilename));
+      this.invalidationKeys = JSON.parse(fs.readFileSync(this.invalidationKeysFilename));
     } catch (e) {
-      this.reset()
+      this.reset();
     }
   }
 
-  save () {
-    let dump = this.getDump()
-    let blobToStore = Buffer.concat(dump[0])
-    let mapToStore = JSON.stringify(dump[1])
-    let invalidationKeysToStore = JSON.stringify(this.invalidationKeys)
+  save() {
+    const dump = this.getDump();
+    const blobToStore = Buffer.concat(dump[0]);
+    const mapToStore = JSON.stringify(dump[1]);
+    const invalidationKeysToStore = JSON.stringify(this.invalidationKeys);
 
-    let acquiredLock = false
+    let acquiredLock = false;
     try {
-      fs.writeFileSync(this.lockFilename, 'LOCK', {flag: 'wx'})
-      acquiredLock = true
+      fs.writeFileSync(this.lockFilename, 'LOCK', {flag: 'wx'});
+      acquiredLock = true;
 
-      fs.writeFileSync(this.blobFilename, blobToStore)
-      fs.writeFileSync(this.blobMapFilename, mapToStore)
-      fs.writeFileSync(this.invalidationKeysFilename, invalidationKeysToStore)
+      fs.writeFileSync(this.blobFilename, blobToStore);
+      fs.writeFileSync(this.blobMapFilename, mapToStore);
+      fs.writeFileSync(this.invalidationKeysFilename, invalidationKeysToStore);
     } catch (error) {
       // Swallow the exception silently only if we fail to acquire the lock.
       if (error.code !== 'EEXIST') {
-        throw error
+        throw error;
       }
     } finally {
       if (acquiredLock) {
-        fs.unlinkSync(this.lockFilename)
+        fs.unlinkSync(this.lockFilename);
       }
     }
   }
 
-  has (key, invalidationKey) {
-    let containsKey = this.inMemoryBlobs.has(key) || this.storedBlobMap.hasOwnProperty(key)
-    let isValid = this.invalidationKeys[key] === invalidationKey
-    return containsKey && isValid
+  has(key, invalidationKey) {
+    const containsKey =
+      this.inMemoryBlobs.has(key) ||
+      this.storedBlobMap.hasOwnProperty(key);
+    const isValid = this.invalidationKeys[key] === invalidationKey;
+    return containsKey && isValid;
   }
 
-  get (key, invalidationKey) {
+  get(key, invalidationKey) {
     if (this.has(key, invalidationKey)) {
-      return this.getFromMemory(key) || this.getFromStorage(key)
+      return this.getFromMemory(key) || this.getFromStorage(key);
     }
   }
 
-  set (key, invalidationKey, buffer) {
-    this.invalidationKeys[key] = invalidationKey
-    return this.inMemoryBlobs.set(key, buffer)
+  set(key, invalidationKey, buffer) {
+    this.invalidationKeys[key] = invalidationKey;
+    return this.inMemoryBlobs.set(key, buffer);
   }
 
-  delete (key) {
-    this.inMemoryBlobs.delete(key)
-    delete this.storedBlobMap[key]
+  delete(key) {
+    this.inMemoryBlobs.delete(key);
+    delete this.storedBlobMap[key];
   }
 
-  getFromMemory (key) {
-    return this.inMemoryBlobs.get(key)
+  getFromMemory(key) {
+    return this.inMemoryBlobs.get(key);
   }
 
-  getFromStorage (key) {
+  getFromStorage(key) {
     if (!this.storedBlobMap[key]) {
-      return
+      return;
     }
-
-    return this.storedBlob.slice.apply(this.storedBlob, this.storedBlobMap[key])
+    const [start, end] = this.storedBlobMap[key];
+    return this.storedBlob.slice(start, end);
   }
 
-  getDump () {
-    let buffers = []
-    let blobMap = {}
-    let currentBufferStart = 0
+  getDump() {
+    const buffers = [];
+    const blobMap = {};
+    let currentBufferStart = 0;
 
-    function dump (key, getBufferByKey) {
-      let buffer = getBufferByKey(key)
-      buffers.push(buffer)
-      blobMap[key] = [currentBufferStart, currentBufferStart + buffer.length]
-      currentBufferStart += buffer.length
+    function dump(key, getBufferByKey) {
+      const buffer = getBufferByKey(key);
+      buffers.push(buffer);
+      blobMap[key] = [currentBufferStart, currentBufferStart + buffer.length];
+      currentBufferStart += buffer.length;
     }
 
-    for (let key of this.inMemoryBlobs.keys()) {
-      dump(key, this.getFromMemory.bind(this))
+    for (const key of this.inMemoryBlobs.keys()) {
+      dump(key, this.getFromMemory.bind(this));
     }
 
-    for (let key of Object.keys(this.storedBlobMap)) {
+    for (const key of Object.keys(this.storedBlobMap)) {
       if (!blobMap[key]) {
-        dump(key, this.getFromStorage.bind(this))
+        dump(key, this.getFromStorage.bind(this));
       }
     }
 
-    return [buffers, blobMap]
+    return [buffers, blobMap];
   }
-}
+};
