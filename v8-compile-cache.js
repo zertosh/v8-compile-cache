@@ -3,14 +3,10 @@
 const path = require('path');
 const os = require('os');
 
-const mkdirp = require('mkdirp');
-
-const FileSystemBlobStore = require('./file-system-blob-store');
+const FileSystemBlobStore = require('./FileSystemBlobStore');
 const NativeCompileCache = require('./native-compile-cache');
 
 const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache');
-mkdirp.sync(cacheDir);
-
 const blobStore = FileSystemBlobStore.load(cacheDir);
 
 NativeCompileCache.setCacheStore(blobStore)

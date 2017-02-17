@@ -11,5 +11,10 @@
   "dependencies": {
     "cached-run-in-this-context": "0.4.1",
     "mkdirp": "0.5.1"
+  },
+  "devDependencies": {
+    "jest": "^18.1.0",
+    "rimraf": "^2.5.4",
+    "temp": "^0.8.3"
   }
 }

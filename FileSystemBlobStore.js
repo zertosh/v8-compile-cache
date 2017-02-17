@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const mkdirpSync = require('./mkdirpSync');
 
 module.exports =
 class FileSystemBlobStore {
@@ -16,6 +17,7 @@ class FileSystemBlobStore {
     this.blobMapFilename = path.join(directory, 'MAP')
     this.invalidationKeysFilename = path.join(directory, 'INVKEYS')
     this.lockFilename = path.join(directory, 'LOCK')
+    mkdirpSync(directory)
     this.reset()
   }
 
