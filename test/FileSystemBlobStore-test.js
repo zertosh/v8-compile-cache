@@ -15,7 +15,7 @@ let storageDirectory;
 let blobStore;
 
 tap.beforeEach(cb => {
-  storageDirectory = temp.path('atom-spec-filesystemblobstore');
+  storageDirectory = temp.path('filesystemblobstore');
   blobStore = FileSystemBlobStore.load(storageDirectory);
   cb();
 });
