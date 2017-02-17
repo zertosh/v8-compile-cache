@@ -36,6 +36,7 @@ module.exports = class FileSystemBlobStore {
 
   delete(key) {
     this._inMemoryBlobs.delete(key);
+    delete this._invalidationKeys[key];
     delete this._storedBlobMap[key];
   }
 
