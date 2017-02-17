@@ -4,7 +4,7 @@ const path = require('path');
 const os = require('os');
 
 const FileSystemBlobStore = require('./FileSystemBlobStore');
-const NativeCompileCache = require('./native-compile-cache');
+const NativeCompileCache = require('./NativeCompileCache');
 
 const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache');
 const blobStore = FileSystemBlobStore.load(cacheDir);
