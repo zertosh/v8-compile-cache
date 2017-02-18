@@ -11,7 +11,7 @@ module.exports = class FileSystemBlobStore {
     this._blobFilename = path.join(directory, 'BLOB');
     this._mapFilename = path.join(directory, 'MAP');
     this._lockFilename = path.join(directory, 'LOCK');
-    mkdirpSync(directory);
+    this._directory = directory;
     this._load();
   }
 
@@ -61,6 +61,7 @@ module.exports = class FileSystemBlobStore {
 
     let acquiredLock = false;
     try {
+      mkdirpSync(this._directory);
       fs.writeFileSync(this._lockFilename, 'LOCK', {flag: 'wx'});
       acquiredLock = true;
 
