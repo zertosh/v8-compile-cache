@@ -9,7 +9,7 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 module.exports = class FileSystemBlobStore {
   constructor(directory) {
     this._blobFilename = path.join(directory, 'BLOB');
-    this._blobMapFilename = path.join(directory, 'MAP');
+    this._mapFilename = path.join(directory, 'MAP');
     this._lockFilename = path.join(directory, 'LOCK');
     mkdirpSync(directory);
     this._load();
@@ -65,7 +65,7 @@ module.exports = class FileSystemBlobStore {
       acquiredLock = true;
 
       fs.writeFileSync(this._blobFilename, blobToStore);
-      fs.writeFileSync(this._blobMapFilename, mapToStore);
+      fs.writeFileSync(this._mapFilename, mapToStore);
     } catch (error) {
       // Swallow the exception silently only if we fail to acquire the lock.
       if (error.code !== 'EEXIST') {
@@ -80,12 +80,12 @@ module.exports = class FileSystemBlobStore {
 
   _load() {
     if (
-      fs.existsSync(this._blobMapFilename) &&
+      fs.existsSync(this._mapFilename) &&
       fs.existsSync(this._blobFilename)
     ) {
       try {
         this._storedBlob = fs.readFileSync(this._blobFilename);
-        this._storedBlobMap = JSON.parse(fs.readFileSync(this._blobMapFilename));
+        this._storedBlobMap = JSON.parse(fs.readFileSync(this._mapFilename));
       } catch (e) {
         // ...
       }
