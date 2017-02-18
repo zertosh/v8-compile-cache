@@ -26,6 +26,7 @@ tap.afterEach(cb => {
 });
 
 tap.test('is empty when the file doesn\'t exist', t => {
+  t.equal(blobStore.isDirty(), false);
   t.type(blobStore.get('foo', 'invalidation-key-1'), 'undefined');
   t.type(blobStore.get('bar', 'invalidation-key-2'), 'undefined');
   t.end();
@@ -148,6 +149,49 @@ tap.test('object hash collision', t => {
   blobStore = new FileSystemBlobStore(storageDirectory);
   t.same(blobStore.get('constructor', 'invalidation-key-1'), new Buffer('proto'));
   t.type(blobStore.get('hasOwnProperty', 'invalidation-key-2'), 'undefined');
+
+  t.end();
+});
+
+tap.test('dirty state (set)', t => {
+  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  t.equal(blobStore.isDirty(), true);
+  blobStore.save();
+
+  blobStore = new FileSystemBlobStore(storageDirectory);
+
+  t.equal(blobStore.isDirty(), false);
+  blobStore.set('foo', 'invalidation-key-2', new Buffer('bar'));
+  t.equal(blobStore.isDirty(), true);
+
+  t.end();
+});
+
+tap.test('dirty state (delete memory)', t => {
+  blobStore.delete('foo');
+  t.equal(blobStore.isDirty(), false);
+  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.delete('foo');
+  t.equal(blobStore.isDirty(), true);
+  blobStore.save();
+
+  blobStore = new FileSystemBlobStore(storageDirectory);
+
+  t.equal(blobStore.isDirty(), false);
+  blobStore.set('foo', 'invalidation-key-2', new Buffer('bar'));
+  t.equal(blobStore.isDirty(), true);
+
+  t.end();
+});
+
+tap.test('dirty state (delete stored)', t => {
+  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.save();
+
+  blobStore = new FileSystemBlobStore(storageDirectory);
+
+  blobStore.delete('foo');
+  t.equal(blobStore.isDirty(), true);
 
   t.end();
 });

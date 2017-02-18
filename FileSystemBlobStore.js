@@ -40,18 +40,26 @@ module.exports = class FileSystemBlobStore {
   set(key, invalidationKey, buffer) {
     this._invalidationKeys[key] = invalidationKey;
     this._memoryBlobs[key] = buffer;
+    this._dirty = true;
   }
 
   delete(key) {
     if (hasOwnProperty.call(this._memoryBlobs, key)) {
+      this._dirty = true;
       delete this._memoryBlobs[key];
     }
     if (hasOwnProperty.call(this._invalidationKeys, key)) {
+      this._dirty = true;
       delete this._invalidationKeys[key];
     }
     if (hasOwnProperty.call(this._storedMap, key)) {
+      this._dirty = true;
       delete this._storedMap[key];
     }
+  }
+
+  isDirty() {
+    return this._dirty;
   }
 
   save() {
@@ -77,6 +85,8 @@ module.exports = class FileSystemBlobStore {
         fs.unlinkSync(this._lockFilename);
       }
     }
+
+    return true;
   }
 
   _load() {
@@ -91,6 +101,7 @@ module.exports = class FileSystemBlobStore {
         // ...
       }
     }
+    this._dirty = false;
     this._memoryBlobs = {};
     this._invalidationKeys = {};
     if (this._storedBlob == null || this._storedMap == null) {

@@ -14,5 +14,7 @@ NativeCompileCache.setV8Version(process.versions.v8);
 NativeCompileCache.install();
 
 process.on('exit', code => {
-  blobStore.save();
+  if (blobStore.isDirty()) {
+    blobStore.save();
+  }
 });
