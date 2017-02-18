@@ -16,41 +16,41 @@ module.exports = class FileSystemBlobStore {
   }
 
   has(key, invalidationKey) {
-    if (hasOwnProperty.call(this._inMemoryBlobs, key)) {
+    if (hasOwnProperty.call(this._memoryBlobs, key)) {
       return this._invalidationKeys[key] === invalidationKey;
-    } else if (hasOwnProperty.call(this._storedBlobMap, key)) {
-      return this._storedBlobMap[key][0] === invalidationKey;
+    } else if (hasOwnProperty.call(this._storedMap, key)) {
+      return this._storedMap[key][0] === invalidationKey;
     }
     return false;
   }
 
   get(key, invalidationKey) {
-    if (hasOwnProperty.call(this._inMemoryBlobs, key)) {
+    if (hasOwnProperty.call(this._memoryBlobs, key)) {
       if (this._invalidationKeys[key] === invalidationKey) {
-        return this._inMemoryBlobs[key];
+        return this._memoryBlobs[key];
       }
-    } else if (hasOwnProperty.call(this._storedBlobMap, key)) {
-      const blobMap = this._storedBlobMap[key];
-      if (blobMap[0] === invalidationKey) {
-        return this._storedBlob.slice(blobMap[1], blobMap[2]);
+    } else if (hasOwnProperty.call(this._storedMap, key)) {
+      const mapping = this._storedMap[key];
+      if (mapping[0] === invalidationKey) {
+        return this._storedBlob.slice(mapping[1], mapping[2]);
       }
     }
   }
 
   set(key, invalidationKey, buffer) {
     this._invalidationKeys[key] = invalidationKey;
-    this._inMemoryBlobs[key] = buffer;
+    this._memoryBlobs[key] = buffer;
   }
 
   delete(key) {
-    if (hasOwnProperty.call(this._inMemoryBlobs, key)) {
-      delete this._inMemoryBlobs[key];
+    if (hasOwnProperty.call(this._memoryBlobs, key)) {
+      delete this._memoryBlobs[key];
     }
     if (hasOwnProperty.call(this._invalidationKeys, key)) {
       delete this._invalidationKeys[key];
     }
-    if (hasOwnProperty.call(this._storedBlobMap, key)) {
-      delete this._storedBlobMap[key];
+    if (hasOwnProperty.call(this._storedMap, key)) {
+      delete this._storedMap[key];
     }
   }
 
@@ -85,43 +85,43 @@ module.exports = class FileSystemBlobStore {
     ) {
       try {
         this._storedBlob = fs.readFileSync(this._blobFilename);
-        this._storedBlobMap = JSON.parse(fs.readFileSync(this._mapFilename));
+        this._storedMap = JSON.parse(fs.readFileSync(this._mapFilename));
       } catch (e) {
         // ...
       }
     }
-    this._inMemoryBlobs = {};
+    this._memoryBlobs = {};
     this._invalidationKeys = {};
-    if (this._storedBlob == null || this._storedBlobMap == null) {
+    if (this._storedBlob == null || this._storedMap == null) {
       this._storedBlob = new Buffer(0);
-      this._storedBlobMap = {};
+      this._storedMap = {};
     }
   }
 
   _getDump() {
     const buffers = [];
-    const blobMap = {};
+    const newMap = {};
     let offset = 0;
 
     function push(key, invalidationKey, buffer) {
       buffers.push(buffer);
-      blobMap[key] = [invalidationKey, offset, offset + buffer.length];
+      newMap[key] = [invalidationKey, offset, offset + buffer.length];
       offset += buffer.length;
     }
 
-    for (const key of Object.keys(this._inMemoryBlobs)) {
-      const buffer = this._inMemoryBlobs[key];
+    for (const key of Object.keys(this._memoryBlobs)) {
+      const buffer = this._memoryBlobs[key];
       const invalidationKey = this._invalidationKeys[key];
       push(key, invalidationKey, buffer);
     }
 
-    for (const key of Object.keys(this._storedBlobMap)) {
-      if (hasOwnProperty.call(blobMap, key)) { continue; }
-      const [invalidationKey, start, end] = this._storedBlobMap[key];
-      const buffer = this._storedBlob.slice(start, end);
-      push(key, invalidationKey, buffer);
+    for (const key of Object.keys(this._storedMap)) {
+      if (hasOwnProperty.call(newMap, key)) { continue; }
+      const mapping = this._storedMap[key];
+      const buffer = this._storedBlob.slice(mapping[1], mapping[2]);
+      push(key, mapping[0], buffer);
     }
 
-    return [buffers, blobMap];
+    return [buffers, newMap];
   }
 };
