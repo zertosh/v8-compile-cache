@@ -137,16 +137,17 @@ tap.test('ignores errors when loading an invalid blob store', t => {
 });
 
 tap.test('object hash collision', t => {
-  t.type(blobStore.get('__proto__', 'invalidation-key-1'), 'undefined');
-  blobStore.delete('__proto__');
-  t.type(blobStore.get('__proto__', 'invalidation-key-1'), 'undefined');
+  t.type(blobStore.get('constructor', 'invalidation-key-1'), 'undefined');
+  blobStore.delete('constructor');
+  t.type(blobStore.get('constructor', 'invalidation-key-1'), 'undefined');
 
-  blobStore.set('__proto__', 'invalidation-key-1', new Buffer('proto'));
-  t.same(blobStore.get('__proto__', 'invalidation-key-1'), new Buffer('proto'));
+  blobStore.set('constructor', 'invalidation-key-1', new Buffer('proto'));
+  t.same(blobStore.get('constructor', 'invalidation-key-1'), new Buffer('proto'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
-  t.same(blobStore.get('__proto__', 'invalidation-key-1'), new Buffer('proto'));
+  t.same(blobStore.get('constructor', 'invalidation-key-1'), new Buffer('proto'));
+  t.type(blobStore.get('hasOwnProperty', 'invalidation-key-2'), 'undefined');
 
   t.end();
 });
