@@ -332,4 +332,5 @@ module.exports.__TEST__ = {
   NativeCompileCache,
   mkdirpSync,
   slashEscape,
+  supportsCachedData,
 };

@@ -5,11 +5,22 @@
 // Node 4/5.
 
 const tap = require('tap');
+const semver = require('semver');
+
+process.env.DISABLE_V8_COMPILE_CACHE = 1;
 
 tap.test('loads without throwing', t => {
   t.doesNotThrow(() => {
-    require('../');
+    require('..');
   });
+
+  t.end();
+});
+
+tap.test('supportsCachedData', t => {
+  const hasV8WithCache = semver.satisfies(process.versions.node, '>=6.0.0');
+  const {supportsCachedData} = require('..').__TEST__;
+  t.equal(supportsCachedData(), hasV8WithCache);
 
   t.end();
 });
