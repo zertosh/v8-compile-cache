@@ -17,3 +17,4 @@ script:
       ;;
     esac
   - npm run lint
+  - npm run bench
