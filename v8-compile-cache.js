@@ -1,23 +1,330 @@
 'use strict';
 
+const Module = require('module');
+const crypto = require('crypto');
+const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const os = require('os');
 
-const FileSystemBlobStore = require('./FileSystemBlobStore');
-const NativeCompileCache = require('./NativeCompileCache');
-const slashEscape = require('./slashEscape');
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache', process.versions.v8);
-const prefix = slashEscape(module.parent.filename);
-const blobStore = new FileSystemBlobStore(cacheDir, prefix);
+//------------------------------------------------------------------------------
+// FileSystemBlobStore
+//------------------------------------------------------------------------------
 
-const nativeCompileCache = new NativeCompileCache();
-nativeCompileCache.setCacheStore(blobStore);
-nativeCompileCache.install();
-
-process.on('exit', code => {
-  if (blobStore.isDirty()) {
-    blobStore.save();
+class FileSystemBlobStore {
+  constructor(directory, prefix) {
+    const name = prefix ? prefix + '.' : '';
+    this._blobFilename = path.join(directory, name + 'BLOB');
+    this._mapFilename = path.join(directory, name + 'MAP');
+    this._lockFilename = path.join(directory, name + 'LOCK');
+    this._directory = directory;
+    this._load();
   }
-  nativeCompileCache.uninstall();
-});
+
+  has(key, invalidationKey) {
+    if (hasOwnProperty.call(this._memoryBlobs, key)) {
+      return this._invalidationKeys[key] === invalidationKey;
+    } else if (hasOwnProperty.call(this._storedMap, key)) {
+      return this._storedMap[key][0] === invalidationKey;
+    }
+    return false;
+  }
+
+  get(key, invalidationKey) {
+    if (hasOwnProperty.call(this._memoryBlobs, key)) {
+      if (this._invalidationKeys[key] === invalidationKey) {
+        return this._memoryBlobs[key];
+      }
+    } else if (hasOwnProperty.call(this._storedMap, key)) {
+      const mapping = this._storedMap[key];
+      if (mapping[0] === invalidationKey) {
+        return this._storedBlob.slice(mapping[1], mapping[2]);
+      }
+    }
+  }
+
+  set(key, invalidationKey, buffer) {
+    this._invalidationKeys[key] = invalidationKey;
+    this._memoryBlobs[key] = buffer;
+    this._dirty = true;
+  }
+
+  delete(key) {
+    if (hasOwnProperty.call(this._memoryBlobs, key)) {
+      this._dirty = true;
+      delete this._memoryBlobs[key];
+    }
+    if (hasOwnProperty.call(this._invalidationKeys, key)) {
+      this._dirty = true;
+      delete this._invalidationKeys[key];
+    }
+    if (hasOwnProperty.call(this._storedMap, key)) {
+      this._dirty = true;
+      delete this._storedMap[key];
+    }
+  }
+
+  isDirty() {
+    return this._dirty;
+  }
+
+  save() {
+    const dump = this._getDump();
+    const blobToStore = Buffer.concat(dump[0]);
+    const mapToStore = JSON.stringify(dump[1]);
+
+    let acquiredLock = false;
+    try {
+      mkdirpSync(this._directory);
+      fs.writeFileSync(this._lockFilename, 'LOCK', {flag: 'wx'});
+      acquiredLock = true;
+
+      fs.writeFileSync(this._blobFilename, blobToStore);
+      fs.writeFileSync(this._mapFilename, mapToStore);
+    } catch (error) {
+      // Swallow the exception silently only if we fail to acquire the lock.
+      if (error.code !== 'EEXIST') {
+        throw error;
+      }
+    } finally {
+      if (acquiredLock) {
+        fs.unlinkSync(this._lockFilename);
+      }
+    }
+
+    return true;
+  }
+
+  _load() {
+    if (
+      fs.existsSync(this._mapFilename) &&
+      fs.existsSync(this._blobFilename)
+    ) {
+      try {
+        this._storedBlob = fs.readFileSync(this._blobFilename);
+        this._storedMap = JSON.parse(fs.readFileSync(this._mapFilename));
+      } catch (e) {
+        // ...
+      }
+    }
+    this._dirty = false;
+    this._memoryBlobs = {};
+    this._invalidationKeys = {};
+    if (this._storedBlob == null || this._storedMap == null) {
+      this._storedBlob = new Buffer(0);
+      this._storedMap = {};
+    }
+  }
+
+  _getDump() {
+    const buffers = [];
+    const newMap = {};
+    let offset = 0;
+
+    function push(key, invalidationKey, buffer) {
+      buffers.push(buffer);
+      newMap[key] = [invalidationKey, offset, offset + buffer.length];
+      offset += buffer.length;
+    }
+
+    for (const key of Object.keys(this._memoryBlobs)) {
+      const buffer = this._memoryBlobs[key];
+      const invalidationKey = this._invalidationKeys[key];
+      push(key, invalidationKey, buffer);
+    }
+
+    for (const key of Object.keys(this._storedMap)) {
+      if (hasOwnProperty.call(newMap, key)) { continue; }
+      const mapping = this._storedMap[key];
+      const buffer = this._storedBlob.slice(mapping[1], mapping[2]);
+      push(key, mapping[0], buffer);
+    }
+
+    return [buffers, newMap];
+  }
+}
+
+//------------------------------------------------------------------------------
+// NativeCompileCache
+//------------------------------------------------------------------------------
+
+class NativeCompileCache {
+  constructor() {
+    this._cacheStore = null;
+    this._previousModuleCompile = null;
+  }
+
+  setCacheStore(cacheStore) {
+    this._cacheStore = cacheStore;
+  }
+
+  install() {
+    const self = this;
+    this._previousModuleCompile = Module.prototype._compile;
+    Module.prototype._compile = function(content, filename) {
+      const mod = this;
+      function require(id) {
+        return mod.require(id);
+      }
+      require.resolve = function(request) {
+        return Module._resolveFilename(request, mod);
+      };
+      require.main = process.mainModule;
+
+      // Enable support to add extra extension types
+      require.extensions = Module._extensions;
+      require.cache = Module._cache;
+
+      const dirname = path.dirname(filename);
+
+      const compiledWrapper = self._moduleCompile(filename, content);
+
+      // We skip the debugger setup because by the time we run, node has already
+      // done that itself.
+
+      const args = [mod.exports, require, mod, filename, dirname, process, global];
+      return compiledWrapper.apply(mod.exports, args);
+    };
+  }
+
+  uninstall() {
+    Module.prototype._compile = this._previousModuleCompile;
+  }
+
+  _moduleCompile(filename, content) {
+    // https://github.com/nodejs/node/blob/v7.5.0/lib/module.js#L511
+
+    // Remove shebang
+    var contLen = content.length;
+    if (contLen >= 2) {
+      if (content.charCodeAt(0) === 35/*#*/ &&
+          content.charCodeAt(1) === 33/*!*/) {
+        if (contLen === 2) {
+          // Exact match
+          content = '';
+        } else {
+          // Find end of shebang line and slice it off
+          var i = 2;
+          for (; i < contLen; ++i) {
+            var code = content.charCodeAt(i);
+            if (code === 10/*\n*/ || code === 13/*\r*/) break;
+          }
+          if (i === contLen) {
+            content = '';
+          } else {
+            // Note that this actually includes the newline character(s) in the
+            // new output. This duplicates the behavior of the regular
+            // expression that was previously used to replace the shebang line
+            content = content.slice(i);
+          }
+        }
+      }
+    }
+
+    // create wrapper function
+    var wrapper = Module.wrap(content);
+
+    var invalidationKey = crypto
+      .createHash('sha1')
+      .update(content, 'utf8')
+      .digest('hex');
+
+    var buffer = this._cacheStore.get(filename, invalidationKey);
+
+    var script = new vm.Script(wrapper, {
+      filename: filename,
+      lineOffset: 0,
+      displayErrors: true,
+      cachedData: buffer,
+      produceCachedData: true,
+    });
+
+    if (script.cachedDataProduced) {
+      this._cacheStore.set(filename, invalidationKey, script.cachedData);
+    } else if (script.cachedDataRejected) {
+      this._cacheStore.delete(filename);
+    }
+
+    const compiledWrapper = script.runInThisContext({
+      filename: filename,
+      lineOffset: 0,
+      columnOffset: 0,
+      displayErrors: true,
+    });
+
+    return compiledWrapper;
+  }
+}
+
+//------------------------------------------------------------------------------
+// utilities
+//
+// https://github.com/substack/node-mkdirp/blob/f2003bb/index.js#L55-L98
+// https://github.com/zertosh/slash-escape/blob/e7ebb99/slash-escape.js
+//------------------------------------------------------------------------------
+
+function mkdirpSync(p_, mode_, made_) {
+  const p = path.resolve(p_);
+  const mode = mode_ || parseInt('0777', 8) & (~process.umask());
+  let made = made_ || null;
+
+  try {
+    fs.mkdirSync(p, mode);
+    made = made || p;
+  } catch (err0) {
+    if (err0.code === 'ENOENT') {
+      made = mkdirpSync(path.dirname(p), mode, made);
+      mkdirpSync(p, mode, made);
+    } else {
+      try {
+        const stat = fs.statSync(p);
+        if (!stat.isDirectory()) { throw err0; }
+      } catch (err1) {
+        throw err0;
+      }
+    }
+  }
+
+  return made;
+}
+
+function slashEscape(str) {
+  const ESCAPE_LOOKUP = {
+    '\\': 'zB',
+    ':': 'zC',
+    '/': 'zS',
+    '\x00': 'z0',
+    'z': 'zZ',
+  };
+  return str.replace(/[\\:\/\x00z]/g, match => (ESCAPE_LOOKUP[match]));
+}
+
+//------------------------------------------------------------------------------
+// main
+//------------------------------------------------------------------------------
+
+if (!process.env.DISABLE_V8_COMPILE_CACHE) {
+  const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache', process.versions.v8);
+  const prefix = slashEscape(module.parent.filename);
+  const blobStore = new FileSystemBlobStore(cacheDir, prefix);
+
+  const nativeCompileCache = new NativeCompileCache();
+  nativeCompileCache.setCacheStore(blobStore);
+  nativeCompileCache.install();
+
+  process.on('exit', code => {
+    if (blobStore.isDirty()) {
+      blobStore.save();
+    }
+    nativeCompileCache.uninstall();
+  });
+}
+
+module.exports.__TEST__ = {
+  FileSystemBlobStore,
+  NativeCompileCache,
+  mkdirpSync,
+  slashEscape,
+};

@@ -2,7 +2,9 @@
 'use strict';
 
 const tap = require('tap');
-const slashEscape = require('../slashEscape');
+
+process.env.DISABLE_V8_COMPILE_CACHE = 1;
+const {slashEscape} = require('..').__TEST__;
 
 var escapes = {
   '/a/b/c/d': 'zSazSbzSczSd',

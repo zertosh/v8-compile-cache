@@ -7,7 +7,8 @@ const rimraf = require('rimraf');
 const tap = require('tap');
 const temp = require('temp');
 
-const FileSystemBlobStore = require('../FileSystemBlobStore');
+process.env.DISABLE_V8_COMPILE_CACHE = 1;
+const {FileSystemBlobStore} = require('..').__TEST__;
 
 temp.track();
 
