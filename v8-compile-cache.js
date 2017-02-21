@@ -136,7 +136,7 @@ class FileSystemBlobStore {
     }
 
     for (const key of Object.keys(this._storedMap)) {
-      if (hasOwnProperty.call(newMap, key)) { continue; }
+      if (hasOwnProperty.call(newMap, key)) continue;
       const mapping = this._storedMap[key];
       const buffer = this._storedBlob.slice(mapping[1], mapping[2]);
       push(key, mapping[0], buffer);
@@ -247,7 +247,7 @@ class NativeCompileCache {
       this._cacheStore.delete(filename);
     }
 
-    const compiledWrapper = script.runInThisContext({
+    var compiledWrapper = script.runInThisContext({
       filename: filename,
       lineOffset: 0,
       columnOffset: 0,
