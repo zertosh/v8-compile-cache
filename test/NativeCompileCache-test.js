@@ -10,14 +10,16 @@ const temp = require('temp');
 temp.track();
 
 const FileSystemBlobStore_mock = require('./FileSystemBlobStore-mock');
-const nativeCompileCache = require('../NativeCompileCache');
+const NativeCompileCache = require('../NativeCompileCache');
 
 let cachedFiles;
 let fakeCacheStore;
+let nativeCompileCache;
 
 tap.beforeEach(cb => {
   fakeCacheStore = new FileSystemBlobStore_mock();
   cachedFiles = fakeCacheStore._cachedFiles;
+  nativeCompileCache = new NativeCompileCache();
   nativeCompileCache.setCacheStore(fakeCacheStore);
   nativeCompileCache.install();
   cb();

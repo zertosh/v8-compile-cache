@@ -9,11 +9,13 @@ const NativeCompileCache = require('./NativeCompileCache');
 const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache', process.versions.v8);
 const blobStore = new FileSystemBlobStore(cacheDir);
 
-NativeCompileCache.setCacheStore(blobStore);
-NativeCompileCache.install();
+const nativeCompileCache = new NativeCompileCache();
+nativeCompileCache.setCacheStore(blobStore);
+nativeCompileCache.install();
 
 process.on('exit', code => {
   if (blobStore.isDirty()) {
     blobStore.save();
   }
+  nativeCompileCache.uninstall();
 });

@@ -5,7 +5,7 @@ const path = require('path');
 
 const moduleCompile = require('./moduleCompile');
 
-class NativeCompileCache {
+module.exports = class NativeCompileCache {
   constructor() {
     this._previousModuleCompile = null;
   }
@@ -47,6 +47,4 @@ class NativeCompileCache {
   uninstall() {
     Module.prototype._compile = this._previousModuleCompile;
   }
-}
-
-module.exports = new NativeCompileCache();
+};
