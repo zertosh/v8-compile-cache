@@ -4,7 +4,9 @@
 
 # rm -rf "$TMPDIR/v8-compile-cache"
 
-for f in require-*.js; do
-  echo "Running '$f'"
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+for f in $THIS_DIR/require-*.js; do
+  echo "Running "$(basename $f)""
   for i in {1..5}; do node $f; done
 done

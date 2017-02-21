@@ -8,9 +8,12 @@ module.exports = (name, withCache, callback) => {
   logs.push(`node: ${process.uptime() * 1000}ms`);
 
   if (withCache) {
+    // So each test gets its own cache
+    module.filename = module.parent.filename;
     s = Date.now();
     require('../v8-compile-cache');
     logs.push(`require-cache: ${Date.now() - s}ms`);
+    module.filename = __filename;
   }
 
   s = Date.now();
