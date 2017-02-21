@@ -1,4 +1,3 @@
-/* eslint max-len: 0 */
 'use strict';
 
 const Module = require('module');
