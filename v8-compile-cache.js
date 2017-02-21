@@ -319,7 +319,7 @@ if (!process.env.DISABLE_V8_COMPILE_CACHE && supportsCachedData()) {
   nativeCompileCache.setCacheStore(blobStore);
   nativeCompileCache.install();
 
-  process.on('exit', code => {
+  process.once('exit', code => {
     if (blobStore.isDirty()) {
       blobStore.save();
     }
