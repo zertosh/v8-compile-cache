@@ -195,3 +195,21 @@ tap.test('dirty state (delete stored)', t => {
 
   t.end();
 });
+
+tap.test('prefix', t => {
+  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.save();
+
+  t.ok(fs.existsSync(path.join(storageDirectory, 'MAP')));
+  t.ok(fs.existsSync(path.join(storageDirectory, 'BLOB')));
+
+  storageDirectory = temp.path('filesystemblobstore');
+  blobStore = new FileSystemBlobStore(storageDirectory, 'prefix');
+  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.save();
+
+  t.ok(fs.existsSync(path.join(storageDirectory, 'prefix.MAP')));
+  t.ok(fs.existsSync(path.join(storageDirectory, 'prefix.BLOB')));
+
+  t.end();
+});

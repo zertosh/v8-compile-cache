@@ -5,9 +5,11 @@ const os = require('os');
 
 const FileSystemBlobStore = require('./FileSystemBlobStore');
 const NativeCompileCache = require('./NativeCompileCache');
+const slashEscape = require('./slashEscape');
 
 const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache', process.versions.v8);
-const blobStore = new FileSystemBlobStore(cacheDir);
+const prefix = slashEscape(module.parent.filename);
+const blobStore = new FileSystemBlobStore(cacheDir, prefix);
 
 const nativeCompileCache = new NativeCompileCache();
 nativeCompileCache.setCacheStore(blobStore);

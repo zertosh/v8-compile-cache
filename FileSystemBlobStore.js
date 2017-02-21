@@ -7,10 +7,11 @@ const mkdirpSync = require('./mkdirpSync');
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 module.exports = class FileSystemBlobStore {
-  constructor(directory) {
-    this._blobFilename = path.join(directory, 'BLOB');
-    this._mapFilename = path.join(directory, 'MAP');
-    this._lockFilename = path.join(directory, 'LOCK');
+  constructor(directory, prefix) {
+    const name = prefix ? prefix + '.' : '';
+    this._blobFilename = path.join(directory, name + 'BLOB');
+    this._mapFilename = path.join(directory, name + 'MAP');
+    this._lockFilename = path.join(directory, name + 'LOCK');
     this._directory = directory;
     this._load();
   }
