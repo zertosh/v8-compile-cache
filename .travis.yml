@@ -8,7 +8,7 @@ node_js:
 script:
   - case "$TRAVIS_NODE_VERSION" in
     4|5)
-      tap test/node-syntax-test.js
+      tap test/node-version-test.js
       ;;
     *)
       npm run test
