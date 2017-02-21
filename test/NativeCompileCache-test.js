@@ -19,13 +19,12 @@ tap.beforeEach(cb => {
   fakeCacheStore = new FileSystemBlobStore_mock();
   cachedFiles = fakeCacheStore._cachedFiles;
   nativeCompileCache.setCacheStore(fakeCacheStore);
-  nativeCompileCache.setV8Version('a-v8-version');
   nativeCompileCache.install();
   cb();
 });
 
 tap.afterEach(cb => {
-  nativeCompileCache.restorePreviousModuleCompile();
+  nativeCompileCache.uninstall();
   cb();
 });
 
@@ -53,8 +52,7 @@ tap.test('writes and reads from the cache storage when requiring files', t => {
   t.end();
 });
 
-tap.test('when v8 version changes it updates the cache of previously required files', t => {
-  nativeCompileCache.setV8Version('version-1');
+tap.test('when the cache changes it updates the new cache', t => {
   let fn4 = require('./fixtures/file-4');
 
   t.equal(cachedFiles.length, 1);
@@ -63,15 +61,22 @@ tap.test('when v8 version changes it updates the cache of previously required fi
   t.ok(cachedFiles[0].buffer.length > 0);
   t.equal(fn4(), 'file-4');
 
-  nativeCompileCache.setV8Version('version-2');
+  const fakeCacheStore2 = new FileSystemBlobStore_mock();
+  const cachedFiles2 = fakeCacheStore._cachedFiles;
+  nativeCompileCache.setCacheStore(fakeCacheStore2);
+
   delete Module._cache[require.resolve('./fixtures/file-4')];
   fn4 = require('./fixtures/file-4');
 
-  t.equal(cachedFiles.length, 2);
-  t.equal(cachedFiles[1].key, require.resolve('./fixtures/file-4'));
-  t.notEqual(cachedFiles[1].invalidationKey, cachedFiles[0].invalidationKey);
-  t.type(cachedFiles[1].buffer, Uint8Array);
-  t.ok(cachedFiles[1].buffer.length > 0);
+  t.equal(cachedFiles.length, 1);
+  t.equal(cachedFiles2.length, 1);
+  t.equal(cachedFiles[0].key, require.resolve('./fixtures/file-4'));
+  t.equal(cachedFiles2[0].key, require.resolve('./fixtures/file-4'));
+  t.equal(cachedFiles[0].invalidationKey, cachedFiles2[0].invalidationKey);
+  t.type(cachedFiles[0].buffer, Uint8Array);
+  t.type(cachedFiles2[0].buffer, Uint8Array);
+  t.ok(cachedFiles[0].buffer.length > 0);
+  t.ok(cachedFiles2[0].buffer.length > 0);
 
   t.end();
 });

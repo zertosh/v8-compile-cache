@@ -7,7 +7,7 @@ const moduleCompile = require('./moduleCompile');
 
 class NativeCompileCache {
   constructor() {
-    this.previousModuleCompile = null;
+    this._previousModuleCompile = null;
   }
 
   setCacheStore(cacheStore) {
@@ -15,24 +15,12 @@ class NativeCompileCache {
   }
 
   install() {
-    this.savePreviousModuleCompile();
-    this.overrideModuleCompile();
-  }
-
-  uninstall() {
-    this.restorePreviousModuleCompile();
-  }
-
-  savePreviousModuleCompile() {
-    this.previousModuleCompile = Module.prototype._compile;
-  }
-
-  overrideModuleCompile() {
-    const cacheStore = this.cacheStore;
+    const nativeCompileCache = this;
+    this._previousModuleCompile = Module.prototype._compile;
     Module.prototype._compile = function(content, filename) {
       const self = this;
-      function require(path) {
-        return self.require(path);
+      function require(id) {
+        return self.require(id);
       }
       require.resolve = function(request) {
         return Module._resolveFilename(request, self);
@@ -45,7 +33,8 @@ class NativeCompileCache {
 
       const dirname = path.dirname(filename);
 
-      const compiledWrapper = moduleCompile(cacheStore, filename, content);
+      const compiledWrapper =
+        moduleCompile(nativeCompileCache.cacheStore, filename, content);
 
       // We skip the debugger setup because by the time we run, node has already
       // done that itself.
@@ -55,8 +44,8 @@ class NativeCompileCache {
     };
   }
 
-  restorePreviousModuleCompile() {
-    Module.prototype._compile = this.previousModuleCompile;
+  uninstall() {
+    Module.prototype._compile = this._previousModuleCompile;
   }
 }
 
