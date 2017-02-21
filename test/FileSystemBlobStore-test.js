@@ -7,7 +7,7 @@ const tap = require('tap');
 const temp = require('temp');
 
 process.env.DISABLE_V8_COMPILE_CACHE = 1;
-const {FileSystemBlobStore} = require('..').__TEST__;
+const FileSystemBlobStore = require('..').__TEST__.FileSystemBlobStore;
 
 temp.track();
 

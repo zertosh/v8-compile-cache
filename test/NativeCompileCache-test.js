@@ -11,7 +11,7 @@ temp.track();
 const FileSystemBlobStore_mock = require('./FileSystemBlobStore-mock');
 
 process.env.DISABLE_V8_COMPILE_CACHE = 1;
-const {NativeCompileCache} = require('..').__TEST__;
+const NativeCompileCache = require('..').__TEST__.NativeCompileCache;
 
 let cachedFiles;
 let fakeCacheStore;

@@ -8,7 +8,7 @@ const temp = require('temp');
 temp.track();
 
 process.env.DISABLE_V8_COMPILE_CACHE = 1;
-const {mkdirpSync} = require('..').__TEST__;
+const mkdirpSync = require('..').__TEST__.mkdirpSync;
 
 tap.test('creates nested dirs', t => {
   const dirname = path.join(temp.path('mkdirpSync-test'), 'a/b/c');

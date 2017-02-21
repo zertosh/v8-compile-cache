@@ -17,7 +17,7 @@ tap.test('loads without throwing', t => {
 });
 
 tap.test('supportsCachedData', t => {
-  const hasV8WithCache = semver.satisfies(process.versions.node, '>=6.0.0');
+  const hasV8WithCache = semver.satisfies(process.versions.node, '>=5.7.0');
   const supportsCachedData = require('..').__TEST__.supportsCachedData;
   t.equal(supportsCachedData(), hasV8WithCache);
 

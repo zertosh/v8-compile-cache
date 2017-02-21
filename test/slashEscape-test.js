@@ -3,7 +3,7 @@
 const tap = require('tap');
 
 process.env.DISABLE_V8_COMPILE_CACHE = 1;
-const {slashEscape} = require('..').__TEST__;
+const slashEscape = require('..').__TEST__.slashEscape;
 
 var escapes = {
   '/a/b/c/d': 'zSazSbzSczSd',
