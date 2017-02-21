@@ -15,7 +15,7 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 class FileSystemBlobStore {
   constructor(directory, prefix) {
-    const name = prefix ? prefix + '.' : '';
+    const name = prefix ? slashEscape(prefix + '.') : '';
     this._blobFilename = path.join(directory, name + 'BLOB');
     this._mapFilename = path.join(directory, name + 'MAP');
     this._lockFilename = path.join(directory, name + 'LOCK');
@@ -306,13 +306,24 @@ function supportsCachedData() {
   return script.cachedDataProduced != null;
 }
 
+function getParentName() {
+  // `module.parent.filename` is undefined or null when:
+  //    * node -e 'require("v8-compile-cache")'
+  //    * node -r 'v8-compile-cache'
+  //    * Or, requiring from the REPL.
+  const parentName = module.parent && typeof module.parent.filename === 'string'
+    ? module.parent.filename
+    : process.cwd();
+  return parentName;
+}
+
 //------------------------------------------------------------------------------
 // main
 //------------------------------------------------------------------------------
 
 if (!process.env.DISABLE_V8_COMPILE_CACHE && supportsCachedData()) {
   const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache', process.versions.v8);
-  const prefix = slashEscape(module.parent.filename);
+  const prefix = getParentName();
   const blobStore = new FileSystemBlobStore(cacheDir, prefix);
 
   const nativeCompileCache = new NativeCompileCache();
@@ -333,4 +344,5 @@ module.exports.__TEST__ = {
   mkdirpSync,
   slashEscape,
   supportsCachedData,
+  getParentName,
 };
