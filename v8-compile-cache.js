@@ -301,11 +301,16 @@ function slashEscape(str) {
   return str.replace(/[\\:\/\x00z]/g, match => (ESCAPE_LOOKUP[match]));
 }
 
+function supportsCachedData() {
+  var script = new vm.Script('""', {produceCachedData: true});
+  return script.cachedDataProduced != null;
+}
+
 //------------------------------------------------------------------------------
 // main
 //------------------------------------------------------------------------------
 
-if (!process.env.DISABLE_V8_COMPILE_CACHE) {
+if (!process.env.DISABLE_V8_COMPILE_CACHE && supportsCachedData()) {
   const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache', process.versions.v8);
   const prefix = slashEscape(module.parent.filename);
   const blobStore = new FileSystemBlobStore(cacheDir, prefix);
