@@ -98,24 +98,16 @@ class FileSystemBlobStore {
   }
 
   _load() {
-    if (
-      fs.existsSync(this._mapFilename) &&
-      fs.existsSync(this._blobFilename)
-    ) {
-      try {
-        this._storedBlob = fs.readFileSync(this._blobFilename);
-        this._storedMap = JSON.parse(fs.readFileSync(this._mapFilename));
-      } catch (e) {
-        // ...
-      }
+    try {
+      this._storedBlob = fs.readFileSync(this._blobFilename);
+      this._storedMap = JSON.parse(fs.readFileSync(this._mapFilename));
+    } catch (e) {
+      this._storedBlob = new Buffer(0);
+      this._storedMap = {};
     }
     this._dirty = false;
     this._memoryBlobs = {};
     this._invalidationKeys = {};
-    if (this._storedBlob == null || this._storedMap == null) {
-      this._storedBlob = new Buffer(0);
-      this._storedMap = {};
-    }
   }
 
   _getDump() {
