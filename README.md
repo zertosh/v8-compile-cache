@@ -1,5 +1,7 @@
 # v8-compile-cahe
 
+[![Build Status](https://travis-ci.org/zertosh/v8-compile-cache.svg?branch=master)](https://travis-ci.org/zertosh/v8-compile-cache)
+
 https://v8project.blogspot.com/2015/07/code-caching.html
 
 ## Acknowledgements
