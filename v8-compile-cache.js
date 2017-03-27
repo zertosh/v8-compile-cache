@@ -75,23 +75,21 @@ class FileSystemBlobStore {
     const blobToStore = Buffer.concat(dump[0]);
     const mapToStore = JSON.stringify(dump[1]);
 
-    let acquiredLock = false;
     try {
       mkdirpSync(this._directory);
       fs.writeFileSync(this._lockFilename, 'LOCK', {flag: 'wx'});
-      acquiredLock = true;
+    } catch (error) {
+      // Swallow the exception if we fail to acquire the lock.
+      return false;
+    }
 
+    try {
       fs.writeFileSync(this._blobFilename, blobToStore);
       fs.writeFileSync(this._mapFilename, mapToStore);
     } catch (error) {
-      // Swallow the exception silently only if we fail to acquire the lock.
-      if (error.code !== 'EEXIST') {
-        throw error;
-      }
+      throw error;
     } finally {
-      if (acquiredLock) {
-        fs.unlinkSync(this._lockFilename);
-      }
+      fs.unlinkSync(this._lockFilename);
     }
 
     return true;
@@ -257,18 +255,17 @@ class NativeCompileCache {
 // https://github.com/zertosh/slash-escape/blob/e7ebb99/slash-escape.js
 //------------------------------------------------------------------------------
 
-function mkdirpSync(p_, mode_, made_) {
-  const p = path.resolve(p_);
-  const mode = mode_ || parseInt('0777', 8) & (~process.umask());
-  let made = made_ || null;
+function mkdirpSync(p_) {
+  _mkdirpSync(path.resolve(p_), parseInt('0777', 8) & ~process.umask());
+}
 
+function _mkdirpSync(p, mode) {
   try {
     fs.mkdirSync(p, mode);
-    made = made || p;
   } catch (err0) {
     if (err0.code === 'ENOENT') {
-      made = mkdirpSync(path.dirname(p), mode, made);
-      mkdirpSync(p, mode, made);
+      _mkdirpSync(path.dirname(p));
+      _mkdirpSync(p);
     } else {
       try {
         const stat = fs.statSync(p);
@@ -278,8 +275,6 @@ function mkdirpSync(p_, mode_, made_) {
       }
     }
   }
-
-  return made;
 }
 
 function slashEscape(str) {
@@ -298,6 +293,15 @@ function supportsCachedData() {
   return script.cachedDataProduced != null;
 }
 
+function getCacheDir() {
+  // Avoid cache ownership issues on POSIX systems.
+  const dirname = typeof process.getuid === 'function'
+    ? 'v8-compile-cache-' + process.getuid()
+    : 'v8-compile-cache';
+  const cacheDir = path.join(os.tmpdir(), dirname, process.versions.v8);
+  return cacheDir;
+}
+
 function getParentName() {
   // `module.parent.filename` is undefined or null when:
   //    * node -e 'require("v8-compile-cache")'
@@ -314,7 +318,7 @@ function getParentName() {
 //------------------------------------------------------------------------------
 
 if (!process.env.DISABLE_V8_COMPILE_CACHE && supportsCachedData()) {
-  const cacheDir = path.join(os.tmpdir(), 'v8-compile-cache', process.versions.v8);
+  const cacheDir = getCacheDir();
   const prefix = getParentName();
   const blobStore = new FileSystemBlobStore(cacheDir, prefix);
 
@@ -336,5 +340,6 @@ module.exports.__TEST__ = {
   mkdirpSync,
   slashEscape,
   supportsCachedData,
+  getCacheDir,
   getParentName,
 };
