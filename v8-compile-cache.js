@@ -326,12 +326,19 @@ if (!process.env.DISABLE_V8_COMPILE_CACHE && supportsCachedData()) {
   nativeCompileCache.setCacheStore(blobStore);
   nativeCompileCache.install();
 
-  process.once('exit', code => {
+  function saveAndUninstall() {
     if (blobStore.isDirty()) {
       blobStore.save();
     }
     nativeCompileCache.uninstall();
-  });
+  }
+
+  process.once('exit', saveAndUninstall);
+
+  module.exports.done = function done() {
+    saveAndUninstall();
+    process.removeListener('exit', saveAndUninstall);
+  };
 }
 
 module.exports.__TEST__ = {
