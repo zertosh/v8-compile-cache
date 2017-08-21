@@ -290,7 +290,7 @@ function slashEscape(str) {
 
 function supportsCachedData() {
   var script = new vm.Script('""', {produceCachedData: true});
-  return script.cachedDataProduced != null;
+    return process.versions.v8 && script.cachedDataProduced != null;
 }
 
 function getCacheDir() {
