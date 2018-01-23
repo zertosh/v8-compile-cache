@@ -22,6 +22,18 @@ The ability to tap into V8 to produce/consume this cache was introduced in [Node
 
 **Requiring `v8-compile-cache` in Node <5.7.0 is a noop – but you need at least Node 4.0.0 to support the ES2015 syntax used by `v8-compile-cache`.**
 
+Normally, `v8-compile-cache` writes its cache when the process exits.
+
+If you want more manual control over the cache lifetime, `v8-compile-cache` exports
+a `done()` function that immediately writes to cache and uninstalls the `require`
+hook:
+
+```js
+const compileCache = require('v8-compile-cache');
+...
+compileCache.done();
+```
+
 ## Options
 
 Set the environment variable `DISABLE_V8_COMPILE_CACHE=1` to disable the cache.
@@ -46,7 +58,7 @@ _^ Includes the overhead of loading the cache itself._
 
 ## Acknowledgements
 
-* `FileSystemBlobStore` and `NativeCompileCache` are based on Atom's implementation of their v8 compile cache: 
+* `FileSystemBlobStore` and `NativeCompileCache` are based on Atom's implementation of their v8 compile cache:
   - https://github.com/atom/atom/blob/b0d7a8a/src/file-system-blob-store.js
   - https://github.com/atom/atom/blob/b0d7a8a/src/native-compile-cache.js
 * `mkdirpSync` is based on:
