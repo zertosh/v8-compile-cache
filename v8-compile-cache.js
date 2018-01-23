@@ -300,7 +300,7 @@ function getCacheDir() {
     ? 'v8-compile-cache-' + process.getuid()
     : 'v8-compile-cache';
   const version = typeof process.versions.v8 === 'string'
-    ? 'v8-' + process.versions.v8
+    ? process.versions.v8
     : typeof process.versions.chakracore === 'string'
       ? 'chakracore-' + process.versions.chakracore
       : 'node-' + process.version;

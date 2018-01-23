@@ -14,7 +14,7 @@ tap.test('getCacheDir (v8)', t => {
   const nameParts = parts[1].split(path.sep);
 
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
-  t.equal(nameParts[2], 'v8-' + process.versions.v8);
+  t.equal(nameParts[2], process.versions.v8);
 
   t.done();
 });
