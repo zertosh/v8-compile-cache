@@ -289,6 +289,9 @@ function slashEscape(str) {
 }
 
 function supportsCachedData() {
+  if (!process.versions.v8) {
+    return false;
+  }
   var script = new vm.Script('""', {produceCachedData: true});
   return script.cachedDataProduced != null;
 }
