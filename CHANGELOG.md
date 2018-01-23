@@ -1,5 +1,9 @@
 # `v8-module-cache` Changelog
 
+## 2018-01-23, Version 1.1.2
+
+* Instead of checking for `process.versions.v8`, check that `script.cachedDataProduced` is `true` (rather than `null`/`undefined`) for support to be considered existent.
+
 ## 2018-01-23, Version 1.1.1
 
 * Check for the existence of `process.versions.v8` before attaching hook (see [f8b0388](https://github.com/zertosh/v8-compile-cache/commit/f8b038848be94bc2c905880dd50447c73393f364)).
