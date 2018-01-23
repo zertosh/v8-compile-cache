@@ -1,5 +1,9 @@
 # `v8-module-cache` Changelog
 
+## 2018-01-23, Version 1.1.1
+
+* Check for the existence of `process.versions.v8` before attaching hook (see [f8b0388](https://github.com/zertosh/v8-compile-cache/commit/f8b038848be94bc2c905880dd50447c73393f364)).
+
 ## 2017-03-27, Version 1.1.0
 
 * Safer cache directory creation (see [bcb3b12](https://github.com/zertosh/v8-compile-cache/commit/bcb3b12c819ab0927ec4408e70f612a6d50a9617)).
