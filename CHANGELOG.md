@@ -1,5 +1,10 @@
 # `v8-module-cache` Changelog
 
+## 2018-04-30, Version 2.0.0
+
+* Use `Buffer.alloc` instead of `new Buffer()`.
+* Drop support for Node 5.x.
+
 ## 2018-01-23, Version 1.1.2
 
 * Instead of checking for `process.versions.v8`, check that `script.cachedDataProduced` is `true` (rather than `null`/`undefined`) for support to be considered existent.
