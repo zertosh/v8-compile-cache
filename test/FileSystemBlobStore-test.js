@@ -33,11 +33,11 @@ tap.test('is empty when the file doesn\'t exist', t => {
 });
 
 tap.test('allows to read and write buffers from/to memory without persisting them', t => {
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
-  blobStore.set('bar', 'invalidation-key-2', new Buffer('bar'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
+  blobStore.set('bar', 'invalidation-key-2', Buffer.from('bar'));
 
-  t.same(blobStore.get('foo', 'invalidation-key-1'), new Buffer('foo'));
-  t.same(blobStore.get('bar', 'invalidation-key-2'), new Buffer('bar'));
+  t.same(blobStore.get('foo', 'invalidation-key-1'), Buffer.from('foo'));
+  t.same(blobStore.get('bar', 'invalidation-key-2'), Buffer.from('bar'));
 
   t.type(blobStore.get('foo', 'unexisting-key'), 'undefined');
   t.type(blobStore.get('bar', 'unexisting-key'), 'undefined');
@@ -46,41 +46,41 @@ tap.test('allows to read and write buffers from/to memory without persisting the
 });
 
 tap.test('persists buffers when saved and retrieves them on load, giving priority to in-memory ones', t => {
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
-  blobStore.set('bar', 'invalidation-key-2', new Buffer('bar'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
+  blobStore.set('bar', 'invalidation-key-2', Buffer.from('bar'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
-  t.same(blobStore.get('foo', 'invalidation-key-1'), new Buffer('foo'));
-  t.same(blobStore.get('bar', 'invalidation-key-2'), new Buffer('bar'));
+  t.same(blobStore.get('foo', 'invalidation-key-1'), Buffer.from('foo'));
+  t.same(blobStore.get('bar', 'invalidation-key-2'), Buffer.from('bar'));
   t.type(blobStore.get('foo', 'unexisting-key'), 'undefined');
   t.type(blobStore.get('bar', 'unexisting-key'), 'undefined');
 
-  blobStore.set('foo', 'new-key', new Buffer('changed'));
+  blobStore.set('foo', 'new-key', Buffer.from('changed'));
 
-  t.same(blobStore.get('foo', 'new-key'), new Buffer('changed'));
+  t.same(blobStore.get('foo', 'new-key'), Buffer.from('changed'));
   t.type(blobStore.get('foo', 'invalidation-key-1'), 'undefined');
 
   t.done();
 });
 
 tap.test('persists both in-memory and previously stored buffers when saved', t => {
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
-  blobStore.set('bar', 'invalidation-key-2', new Buffer('bar'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
+  blobStore.set('bar', 'invalidation-key-2', Buffer.from('bar'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
-  blobStore.set('bar', 'invalidation-key-3', new Buffer('changed'));
-  blobStore.set('qux', 'invalidation-key-4', new Buffer('qux'));
+  blobStore.set('bar', 'invalidation-key-3', Buffer.from('changed'));
+  blobStore.set('qux', 'invalidation-key-4', Buffer.from('qux'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
-  t.same(blobStore.get('foo', 'invalidation-key-1'), new Buffer('foo'));
-  t.same(blobStore.get('bar', 'invalidation-key-3'), new Buffer('changed'));
-  t.same(blobStore.get('qux', 'invalidation-key-4'), new Buffer('qux'));
+  t.same(blobStore.get('foo', 'invalidation-key-1'), Buffer.from('foo'));
+  t.same(blobStore.get('bar', 'invalidation-key-3'), Buffer.from('changed'));
+  t.same(blobStore.get('qux', 'invalidation-key-4'), Buffer.from('qux'));
   t.type(blobStore.get('foo', 'unexisting-key'), 'undefined');
   t.type(blobStore.get('bar', 'invalidation-key-2'), 'undefined');
   t.type(blobStore.get('qux', 'unexisting-key'), 'undefined');
@@ -89,21 +89,21 @@ tap.test('persists both in-memory and previously stored buffers when saved', t =
 });
 
 tap.test('allows to delete keys from both memory and stored buffers', t => {
-  blobStore.set('a', 'invalidation-key-1', new Buffer('a'));
-  blobStore.set('b', 'invalidation-key-2', new Buffer('b'));
+  blobStore.set('a', 'invalidation-key-1', Buffer.from('a'));
+  blobStore.set('b', 'invalidation-key-2', Buffer.from('b'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
-  blobStore.set('b', 'invalidation-key-3', new Buffer('b'));
-  blobStore.set('c', 'invalidation-key-4', new Buffer('c'));
+  blobStore.set('b', 'invalidation-key-3', Buffer.from('b'));
+  blobStore.set('c', 'invalidation-key-4', Buffer.from('c'));
   blobStore.delete('b');
   blobStore.delete('c');
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
-  t.same(blobStore.get('a', 'invalidation-key-1'), new Buffer('a'));
+  t.same(blobStore.get('a', 'invalidation-key-1'), Buffer.from('a'));
   t.type(blobStore.get('b', 'invalidation-key-2'), 'undefined');
   t.type(blobStore.get('b', 'invalidation-key-3'), 'undefined');
   t.type(blobStore.get('c', 'invalidation-key-4'), 'undefined');
@@ -112,27 +112,27 @@ tap.test('allows to delete keys from both memory and stored buffers', t => {
 });
 
 tap.test('ignores errors when loading an invalid blob store', t => {
-  blobStore.set('a', 'invalidation-key-1', new Buffer('a'));
-  blobStore.set('b', 'invalidation-key-2', new Buffer('b'));
+  blobStore.set('a', 'invalidation-key-1', Buffer.from('a'));
+  blobStore.set('b', 'invalidation-key-2', Buffer.from('b'));
   blobStore.save();
 
   // Simulate corruption
-  fs.writeFileSync(path.join(storageDirectory, 'MAP'), new Buffer([0]));
-  fs.writeFileSync(path.join(storageDirectory, 'BLOB'), new Buffer([0]));
+  fs.writeFileSync(path.join(storageDirectory, 'MAP'), Buffer.from([0]));
+  fs.writeFileSync(path.join(storageDirectory, 'BLOB'), Buffer.from([0]));
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
   t.type(blobStore.get('a', 'invalidation-key-1'), 'undefined');
   t.type(blobStore.get('b', 'invalidation-key-2'), 'undefined');
 
-  blobStore.set('a', 'invalidation-key-1', new Buffer('x'));
-  blobStore.set('b', 'invalidation-key-2', new Buffer('y'));
+  blobStore.set('a', 'invalidation-key-1', Buffer.from('x'));
+  blobStore.set('b', 'invalidation-key-2', Buffer.from('y'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
-  t.same(blobStore.get('a', 'invalidation-key-1'), new Buffer('x'));
-  t.same(blobStore.get('b', 'invalidation-key-2'), new Buffer('y'));
+  t.same(blobStore.get('a', 'invalidation-key-1'), Buffer.from('x'));
+  t.same(blobStore.get('b', 'invalidation-key-2'), Buffer.from('y'));
 
   t.end();
 });
@@ -142,26 +142,26 @@ tap.test('object hash collision', t => {
   blobStore.delete('constructor');
   t.type(blobStore.get('constructor', 'invalidation-key-1'), 'undefined');
 
-  blobStore.set('constructor', 'invalidation-key-1', new Buffer('proto'));
-  t.same(blobStore.get('constructor', 'invalidation-key-1'), new Buffer('proto'));
+  blobStore.set('constructor', 'invalidation-key-1', Buffer.from('proto'));
+  t.same(blobStore.get('constructor', 'invalidation-key-1'), Buffer.from('proto'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
-  t.same(blobStore.get('constructor', 'invalidation-key-1'), new Buffer('proto'));
+  t.same(blobStore.get('constructor', 'invalidation-key-1'), Buffer.from('proto'));
   t.type(blobStore.get('hasOwnProperty', 'invalidation-key-2'), 'undefined');
 
   t.end();
 });
 
 tap.test('dirty state (set)', t => {
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
   t.equal(blobStore.isDirty(), true);
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
 
   t.equal(blobStore.isDirty(), false);
-  blobStore.set('foo', 'invalidation-key-2', new Buffer('bar'));
+  blobStore.set('foo', 'invalidation-key-2', Buffer.from('bar'));
   t.equal(blobStore.isDirty(), true);
 
   t.end();
@@ -170,7 +170,7 @@ tap.test('dirty state (set)', t => {
 tap.test('dirty state (delete memory)', t => {
   blobStore.delete('foo');
   t.equal(blobStore.isDirty(), false);
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
   blobStore.delete('foo');
   t.equal(blobStore.isDirty(), true);
   blobStore.save();
@@ -178,14 +178,14 @@ tap.test('dirty state (delete memory)', t => {
   blobStore = new FileSystemBlobStore(storageDirectory);
 
   t.equal(blobStore.isDirty(), false);
-  blobStore.set('foo', 'invalidation-key-2', new Buffer('bar'));
+  blobStore.set('foo', 'invalidation-key-2', Buffer.from('bar'));
   t.equal(blobStore.isDirty(), true);
 
   t.end();
 });
 
 tap.test('dirty state (delete stored)', t => {
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
   blobStore.save();
 
   blobStore = new FileSystemBlobStore(storageDirectory);
@@ -197,7 +197,7 @@ tap.test('dirty state (delete stored)', t => {
 });
 
 tap.test('prefix', t => {
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
   blobStore.save();
 
   t.ok(fs.existsSync(path.join(storageDirectory, 'MAP')));
@@ -205,7 +205,7 @@ tap.test('prefix', t => {
 
   storageDirectory = temp.path('filesystemblobstore');
   blobStore = new FileSystemBlobStore(storageDirectory, 'prefix');
-  blobStore.set('foo', 'invalidation-key-1', new Buffer('foo'));
+  blobStore.set('foo', 'invalidation-key-1', Buffer.from('foo'));
   blobStore.save();
 
   t.ok(fs.existsSync(path.join(storageDirectory, 'prefix.MAP')));

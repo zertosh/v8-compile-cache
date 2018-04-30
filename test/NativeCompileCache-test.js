@@ -86,7 +86,7 @@ tap.test('when the cache changes it updates the new cache', t => {
 
 tap.test('deletes previously cached code when the cache is an invalid file', t => {
   fakeCacheStore.has = () => true;
-  fakeCacheStore.get = () => new Buffer('an invalid cache');
+  fakeCacheStore.get = () => Buffer.from('an invalid cache');
   let deleteWasCalledWith = null;
   fakeCacheStore.delete = arg => { deleteWasCalledWith = arg; };
 

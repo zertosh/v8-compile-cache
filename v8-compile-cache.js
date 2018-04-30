@@ -100,7 +100,7 @@ class FileSystemBlobStore {
       this._storedBlob = fs.readFileSync(this._blobFilename);
       this._storedMap = JSON.parse(fs.readFileSync(this._mapFilename));
     } catch (e) {
-      this._storedBlob = new Buffer(0);
+      this._storedBlob = Buffer.alloc(0);
       this._storedMap = {};
     }
     this._dirty = false;
