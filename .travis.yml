@@ -3,8 +3,7 @@ language: node_js
 node_js:
   - "4"
   - "5.6.0"
-  - "5.7.0" # Introduced "cachedData"/"produceCachedData"
-  - "5"
+  - "5"  # Introduced "cachedData"/"produceCachedData" after 5.7, need 5.10 for Buffer.from()
   - "6"
   - "8"
   - "9"
