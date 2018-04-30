@@ -84,50 +84,42 @@ tap.test('when the cache changes it updates the new cache', t => {
   t.end();
 });
 
-tap.test(
-  'deletes previously cached code when the cache is an invalid file',
-  t => {
-    fakeCacheStore.has = () => true;
-    fakeCacheStore.get = () => Buffer.from('an invalid cache');
-    let deleteWasCalledWith = null;
-    fakeCacheStore.delete = arg => {
-      deleteWasCalledWith = arg;
-    };
+tap.test('deletes previously cached code when the cache is an invalid file', t => {
+  fakeCacheStore.has = () => true;
+  fakeCacheStore.get = () => Buffer.from('an invalid cache');
+  let deleteWasCalledWith = null;
+  fakeCacheStore.delete = arg => { deleteWasCalledWith = arg; };
 
-    const fn3 = require('./fixtures/file-3');
+  const fn3 = require('./fixtures/file-3');
 
-    t.equal(deleteWasCalledWith, require.resolve('./fixtures/file-3'));
-    t.equal(fn3(), 3);
+  t.equal(deleteWasCalledWith, require.resolve('./fixtures/file-3'));
+  t.equal(fn3(), 3);
 
-    t.end();
-  }
-);
+  t.end();
+});
 
-tap.test(
-  'when a previously required and cached file changes removes it from the store and re-inserts it with the new cache',
-  t => {
-    const tmpDir = temp.mkdirSync('native-compile-cache-test');
-    const tmpFile = path.join(tmpDir, 'file-5.js');
-    fs.writeFileSync(tmpFile, 'module.exports = () => `file-5`;');
+tap.test('when a previously required and cached file changes removes it from the store and re-inserts it with the new cache', t => {
+  const tmpDir = temp.mkdirSync('native-compile-cache-test');
+  const tmpFile = path.join(tmpDir, 'file-5.js');
+  fs.writeFileSync(tmpFile, 'module.exports = () => `file-5`;');
 
-    let fn5 = require(tmpFile);
+  let fn5 = require(tmpFile);
 
-    t.equal(cachedFiles.length, 1);
-    t.equal(cachedFiles[0].key, require.resolve(tmpFile));
-    t.type(cachedFiles[0].buffer, Uint8Array);
-    t.ok(cachedFiles[0].buffer.length > 0);
-    t.equal(fn5(), 'file-5');
+  t.equal(cachedFiles.length, 1);
+  t.equal(cachedFiles[0].key, require.resolve(tmpFile));
+  t.type(cachedFiles[0].buffer, Uint8Array);
+  t.ok(cachedFiles[0].buffer.length > 0);
+  t.equal(fn5(), 'file-5');
 
-    delete Module._cache[require.resolve(tmpFile)];
-    fs.appendFileSync(tmpFile, '\n\n');
-    fn5 = require(tmpFile);
+  delete Module._cache[require.resolve(tmpFile)];
+  fs.appendFileSync(tmpFile, '\n\n');
+  fn5 = require(tmpFile);
 
-    t.equal(cachedFiles.length, 2);
-    t.equal(cachedFiles[1].key, require.resolve(tmpFile));
-    t.notEqual(cachedFiles[1].invalidationKey, cachedFiles[0].invalidationKey);
-    t.type(cachedFiles[1].buffer, Uint8Array);
-    t.ok(cachedFiles[1].buffer.length > 0);
+  t.equal(cachedFiles.length, 2);
+  t.equal(cachedFiles[1].key, require.resolve(tmpFile));
+  t.notEqual(cachedFiles[1].invalidationKey, cachedFiles[0].invalidationKey);
+  t.type(cachedFiles[1].buffer, Uint8Array);
+  t.ok(cachedFiles[1].buffer.length > 0);
 
-    t.end();
-  }
-);
+  t.end();
+});
