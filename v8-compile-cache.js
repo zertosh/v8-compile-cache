@@ -294,7 +294,19 @@ function supportsCachedData() {
   return script.cachedDataProduced === true;
 }
 
+function getAbsolutePath(p) {
+  const parts = p.split(path.sep);
+  const cacheDir = parts[0] === '~'
+      ? path.resolve(path.join.apply(null, [].concat(process.env.HOME, parts.slice(1))))
+      : path.resolve(p);
+  return cacheDir;
+}
+
 function getCacheDir() {
+  if (process.env.V8_COMPILE_CACHE_DIR) {
+    return getAbsolutePath(process.env.V8_COMPILE_CACHE_DIR);
+  }
+
   // Avoid cache ownership issues on POSIX systems.
   const dirname = typeof process.getuid === 'function'
     ? 'v8-compile-cache-' + process.getuid()
@@ -316,6 +328,10 @@ function getParentName() {
   const parentName = module.parent && typeof module.parent.filename === 'string'
     ? module.parent.filename
     : process.cwd();
+  if (process.env.V8_COMPILE_CACHE_PREFIX_ROOT) {
+    const root = getAbsolutePath(process.env.V8_COMPILE_CACHE_PREFIX_ROOT);
+    return path.relative(root, parentName);
+  }
   return parentName;
 }
 
@@ -348,4 +364,5 @@ module.exports.__TEST__ = {
   supportsCachedData,
   getCacheDir,
   getParentName,
+  getAbsolutePath,
 };
