@@ -24,7 +24,25 @@ The ability to tap into V8 to produce/consume this cache was introduced in [Node
 
 ## Options
 
+### DISABLE_V8_COMPILE_CACHE
+
 Set the environment variable `DISABLE_V8_COMPILE_CACHE=1` to disable the cache.
+
+### V8_COMPILE_CACHE_DIR
+
+Set the environment variable `V8_COMPILE_CACHE_DIR=<dir>` to save caches to specific directory. Valid are these:
+* `/var/tmp/somedir`
+* `cwddir`
+* `~/homedir`
+
+### V8_COMPILE_CACHE_PREFIX_ROOT
+
+Set the environment variable `V8_COMPILE_CACHE_PREFIX_ROOT=<dir>` to change cache prefix from absolute path to relative to some directory.
+
+It means that cache is saved in file named using relative to this directory path instead of absolute path, for example:
+* require is placed in file `/home/rick/projects/prj1/lib/index.js`
+* default cache name is produced from `/home/rick/projects/prj1/lib/index.js`
+* with this variable set to `/home/rick/projects/prj1` cache name is produced from `lib/index.js`.
 
 ## Internals
 
