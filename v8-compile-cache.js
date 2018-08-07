@@ -158,8 +158,8 @@ class NativeCompileCache {
       function require(id) {
         return mod.require(id);
       }
-      require.resolve = function(request) {
-        return Module._resolveFilename(request, mod);
+      require.resolve = function(request, options) {
+        return Module._resolveFilename(request, mod, false, options);
       };
       require.main = process.mainModule;
 
