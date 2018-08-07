@@ -1,5 +1,9 @@
 # `v8-module-cache` Changelog
 
+## 2018-08-06, Version 2.0.2
+
+* Re-publish.
+
 ## 2018-08-06, Version 2.0.1
 
 * Support `require.resolve` options (added in Node v8.9.0).
