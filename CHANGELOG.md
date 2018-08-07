@@ -1,5 +1,9 @@
 # `v8-module-cache` Changelog
 
+## 2018-08-06, Version 2.0.1
+
+* Support `require.resolve` options (added in Node v8.9.0).
+
 ## 2018-04-30, Version 2.0.0
 
 * Use `Buffer.alloc` instead of `new Buffer()`.
