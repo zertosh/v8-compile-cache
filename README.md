@@ -44,6 +44,16 @@ See https://github.com/zertosh/v8-compile-cache/tree/master/bench.
 
 _^ Includes the overhead of loading the cache itself._
 
+**CPU Instructions:**
+
+| Module           | Without Cache   | With Cache       |
+| ---------------- | ---------------:| ----------------:|
+| `babel-core`     | ` 1,052,229,095`| `797,511,448`    |
+| `yarn`           | `   777,718,754`| `545,279,558`    |
+| `yarn` (bundled) | ` 1,190,974,452`| `562,439,581`    |
+
+_^ Includes the overhead of loading the cache itself._
+
 ## Acknowledgements
 
 * `FileSystemBlobStore` and `NativeCompileCache` are based on Atom's implementation of their v8 compile cache: 
