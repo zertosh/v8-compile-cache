@@ -305,8 +305,8 @@ function getCacheDir() {
       ? 'chakracore-' + process.versions.chakracore
       : 'node-' + process.version;
   const cacheDir = path.join(
-    process.env.V8_COMPILE_CACHE_DIR
-      ? process.env.V8_COMPILE_CACHE_DIR
+    process.env && process.env.V8_COMPILE_CACHE_BASE_DIR
+      ? process.env.V8_COMPILE_CACHE_BASE_DIR
       : os.tmpdir(),
     dirname,
     version
