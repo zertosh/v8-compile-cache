@@ -8,6 +8,7 @@ const vm = require('vm');
 const os = require('os');
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
+const resolvePaths = require.resolve.paths;
 
 //------------------------------------------------------------------------------
 // FileSystemBlobStore
@@ -161,6 +162,7 @@ class NativeCompileCache {
       require.resolve = function(request, options) {
         return Module._resolveFilename(request, mod, false, options);
       };
+      require.resolve.paths = resolvePaths;
       require.main = process.mainModule;
 
       // Enable support to add extra extension types
