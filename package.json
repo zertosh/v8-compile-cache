@@ -6,7 +6,8 @@
   "scripts": {
     "bench": "bench/run.sh",
     "lint": "eslint --max-warnings=0 .",
-    "test": "tap test/*-test.js"
+    "test": "tap test/*-test.js",
+    "posttest": "npm run lint"
   },
   "author": "Andres Suarez <zertosh@gmail.com>",
   "files": [
