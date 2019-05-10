@@ -10,6 +10,10 @@
     "posttest": "npm run lint"
   },
   "author": "Andres Suarez <zertosh@gmail.com>",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/zertosh/v8-compile-cache.git"
+  },
   "files": [
     "v8-compile-cache.js"
   ],
