@@ -318,7 +318,8 @@ function getCacheDir() {
     : typeof process.versions.chakracore === 'string'
       ? 'chakracore-' + process.versions.chakracore
       : 'node-' + process.version;
-  const cacheDir = path.join(os.tmpdir(), dirname, version);
+  const cacheDir = process.env.V8_COMPILE_CACHE_CACHE_DIR ||
+    path.join(os.tmpdir(), dirname, version);
   return cacheDir;
 }
 

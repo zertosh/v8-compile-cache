@@ -26,6 +26,7 @@ tap.test('getCacheDir (chakracore)', t => {
       process: {
         getuid: process.getuid,
         versions: {chakracore: '1.2.3'},
+        env: {},
       },
       path,
       os,
@@ -49,6 +50,7 @@ tap.test('getCacheDir (unknown)', t => {
         getuid: process.getuid,
         version: '1.2.3',
         versions: {},
+        env: {},
       },
       path,
       os,
@@ -59,6 +61,27 @@ tap.test('getCacheDir (unknown)', t => {
   const nameParts = parts[1].split(path.sep);
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
   t.equal(nameParts[2], 'node-1.2.3');
+
+  t.done();
+});
+
+tap.test('getCacheDir (env)', t => {
+  const cacheDir = vm.runInNewContext(
+    '(' + getCacheDir.toString() + ')();',
+    {
+      process: {
+        getuid: process.getuid,
+        versions: {},
+        env: {
+          V8_COMPILE_CACHE_CACHE_DIR: 'from env',
+        },
+      },
+      path,
+      os,
+    }
+  );
+
+  t.equal(cacheDir, 'from env');
 
   t.done();
 });
