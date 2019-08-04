@@ -188,7 +188,7 @@ class NativeCompileCache {
       // We skip the debugger setup because by the time we run, node has already
       // done that itself.
 
-      const args = [mod.exports, require, mod, filename, dirname, process, global];
+      const args = [mod.exports, require, mod, filename, dirname, process, global, Buffer];
       return compiledWrapper.apply(mod.exports, args);
     };
   }
