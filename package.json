@@ -1,6 +1,6 @@
 {
   "name": "v8-compile-cache",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Require hook for automatic V8 compile cache persistence",
   "main": "v8-compile-cache.js",
   "scripts": {
