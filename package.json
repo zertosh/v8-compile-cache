@@ -22,6 +22,7 @@
   "devDependencies": {
     "babel-core": "6.23.1",
     "eslint": "^3.15.0",
+    "express": "^4.16.4",
     "flow-parser": "0.38.0",
     "rimraf": "^2.5.4",
     "rxjs": "5.2.0",
