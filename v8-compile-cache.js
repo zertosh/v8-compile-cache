@@ -86,8 +86,6 @@ class FileSystemBlobStore {
     try {
       fs.writeFileSync(this._blobFilename, blobToStore);
       fs.writeFileSync(this._mapFilename, mapToStore);
-    } catch (error) {
-      throw error;
     } finally {
       fs.unlinkSync(this._lockFilename);
     }
@@ -301,7 +299,8 @@ function slashEscape(str) {
     '\x00': 'z0',
     'z': 'zZ',
   };
-  return str.replace(/[\\:\/\x00z]/g, match => (ESCAPE_LOOKUP[match]));
+  const ESCAPE_REGEX = /[\\:/\x00z]/g; // eslint-disable-line no-control-regex
+  return str.replace(ESCAPE_REGEX, match => ESCAPE_LOOKUP[match]);
 }
 
 function supportsCachedData() {
@@ -348,7 +347,7 @@ if (!process.env.DISABLE_V8_COMPILE_CACHE && supportsCachedData()) {
   nativeCompileCache.setCacheStore(blobStore);
   nativeCompileCache.install();
 
-  process.once('exit', code => {
+  process.once('exit', () => {
     if (blobStore.isDirty()) {
       blobStore.save();
     }
