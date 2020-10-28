@@ -11,12 +11,12 @@ node_js:
   - "14"
 script:
   - case "$TRAVIS_NODE_VERSION" in
-    4|5.6.0)
+    4|5.6.0|5)
       tap test/node-version-test.js
       ;;
     *)
       npm run test
+      npm run lint
+      npm run bench
       ;;
     esac
-  - npm run lint
-  - npm run bench
