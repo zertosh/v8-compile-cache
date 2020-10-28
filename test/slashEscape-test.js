@@ -13,8 +13,7 @@ var escapes = {
 };
 
 tap.test('escape', t => {
-  for (var key in escapes) {
-    if (!escapes.hasOwnProperty(key)) continue;
+  for (const key of Object.keys(escapes)) {
     t.equal(
       slashEscape(key),
       escapes[key]
