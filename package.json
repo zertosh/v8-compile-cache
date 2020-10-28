@@ -5,9 +5,10 @@
   "main": "v8-compile-cache.js",
   "scripts": {
     "bench": "bench/run.sh",
-    "lint": "eslint --max-warnings=0 .",
-    "test": "tap test/*-test.js",
-    "posttest": "npm run lint"
+    "eslint": "eslint --max-warnings=0 .",
+    "tap": "tap test/*-test.js",
+    "test": "npm run tap",
+    "posttest": "npm run eslint"
   },
   "author": "Andres Suarez <zertosh@gmail.com>",
   "repository": {
