@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# for i in {1..5}; do node bench/require-yarn.js; done
+set -eo pipefail
 
-# rm -rf "$TMPDIR/v8-compile-cache"
+V8_COMPILE_CACHE_CACHE_DIR=$(mktemp -d)
+export V8_COMPILE_CACHE_CACHE_DIR=$V8_COMPILE_CACHE_CACHE_DIR
+trap 'rm -r "$V8_COMPILE_CACHE_CACHE_DIR"' EXIT
 
 THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 : "${NODE_BIN:=node}"

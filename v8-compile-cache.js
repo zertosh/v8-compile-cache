@@ -310,6 +310,11 @@ function supportsCachedData() {
 }
 
 function getCacheDir() {
+  const v8_compile_cache_cache_dir = process.env.V8_COMPILE_CACHE_CACHE_DIR;
+  if (v8_compile_cache_cache_dir) {
+    return v8_compile_cache_cache_dir;
+  }
+
   // Avoid cache ownership issues on POSIX systems.
   const dirname = typeof process.getuid === 'function'
     ? 'v8-compile-cache-' + process.getuid()
