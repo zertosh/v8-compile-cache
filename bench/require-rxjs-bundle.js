@@ -4,5 +4,5 @@
 const WITH_CACHE = true;
 
 require('./_measure.js')('require-rxjs-bundle', WITH_CACHE, () => {
-  require('rxjs/bundles/Rx.js');
+  require('rxjs/bundles/rxjs.umd.js');
 });

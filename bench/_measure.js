@@ -5,7 +5,7 @@ module.exports = (name, withCache, callback) => {
   let s;
 
   const logs = [];
-  logs.push(`node: ${process.uptime() * 1000}ms`);
+  logs.push(`node: ${parseInt(process.uptime() * 1000, 10)}ms`);
 
   // So each test gets its own cache
   module.filename = module.parent.filename;
@@ -21,7 +21,7 @@ module.exports = (name, withCache, callback) => {
   s = Date.now();
   process.on('exit', () => {
     logs.push(`exit: ${Date.now() - s}ms`);
-    logs.push(`total: ${process.uptime() * 1000}ms`);
+    logs.push(`total: ${parseInt(process.uptime() * 1000, 10)}ms`);
     console.log(logs.join('\t'));
   });
 };
