@@ -11,7 +11,7 @@ tap.beforeEach(cb => {
 tap.test('handles --require', t => {
   const ps = child_process.spawnSync(
     process.execPath,
-    ['--require', '..', require.resolve('./fixtures/print-parent-name')],
+    ['--require', '..', require.resolve('./fixtures/print-main-name')],
     {cwd: __dirname}
   );
   t.equal(ps.status, 0);
@@ -20,12 +20,12 @@ tap.test('handles --require', t => {
   t.end();
 });
 
-tap.test('bad module.parent.filename', t => {
+tap.test('bad require.main.filename', t => {
   const ps = child_process.spawnSync(
     process.execPath,
     ['--eval', `
       module.filename = null;
-      console.log(require('..').__TEST__.getParentName());
+      console.log(require('..').__TEST__.getMainName());
     `],
     {cwd: __dirname}
   );
@@ -35,7 +35,7 @@ tap.test('bad module.parent.filename', t => {
   t.end();
 });
 
-tap.test('module.parent.filename works with --eval', t => {
+tap.test('require.main.filename works with --eval', t => {
   const ps = child_process.spawnSync(
     process.execPath,
     ['--eval', 'require("..")'],
@@ -46,7 +46,7 @@ tap.test('module.parent.filename works with --eval', t => {
   t.end();
 });
 
-tap.test('module.parent.filename works with --require', t => {
+tap.test('require.main.filename works with --require', t => {
   const ps = child_process.spawnSync(
     process.execPath,
     ['--require', '..'],
@@ -57,7 +57,7 @@ tap.test('module.parent.filename works with --require', t => {
   t.end();
 });
 
-tap.test('module.parent.filename works with as arg script', t => {
+tap.test('require.main.filename works with as arg script', t => {
   const ps = child_process.spawnSync(
     process.execPath,
     [require.resolve('..')],
