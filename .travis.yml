@@ -11,6 +11,12 @@ node_js:
   - "12"
   - "14"
   - "15"
+before_install:
+  - case "$TRAVIS_NODE_VERSION" in
+    5|5.6.0)
+      npm install -g npm@4;
+      ;;
+    esac
 script:
   - case "$TRAVIS_NODE_VERSION" in
     4|5.6.0)
