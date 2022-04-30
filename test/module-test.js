@@ -4,9 +4,8 @@ const child_process = require('child_process');
 const tap = require('tap');
 const semver = require('semver');
 
-tap.beforeEach(cb => {
+tap.beforeEach(() => {
   delete process.env.DISABLE_V8_COMPILE_CACHE;
-  cb();
 });
 
 tap.test('require.resolve.paths module', t => {

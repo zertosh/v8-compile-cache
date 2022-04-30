@@ -16,7 +16,7 @@ tap.test('getCacheDir (v8)', t => {
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
   t.equal(nameParts[2], process.versions.v8);
 
-  t.done();
+  t.end();
 });
 
 tap.test('getCacheDir (chakracore)', t => {
@@ -39,7 +39,7 @@ tap.test('getCacheDir (chakracore)', t => {
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
   t.equal(nameParts[2], 'chakracore-1.2.3');
 
-  t.done();
+  t.end();
 });
 
 tap.test('getCacheDir (unknown)', t => {
@@ -62,7 +62,7 @@ tap.test('getCacheDir (unknown)', t => {
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
   t.equal(nameParts[2], 'node-1.2.3');
 
-  t.done();
+  t.end();
 });
 
 tap.test('getCacheDir (env)', t => {
@@ -83,5 +83,5 @@ tap.test('getCacheDir (env)', t => {
 
   t.equal(cacheDir, 'from env');
 
-  t.done();
+  t.end();
 });

@@ -3,9 +3,8 @@
 const tap = require('tap');
 const child_process = require('child_process');
 
-tap.beforeEach(cb => {
+tap.beforeEach(() => {
   delete process.env.DISABLE_V8_COMPILE_CACHE;
-  cb();
 });
 
 tap.test('handles --require', t => {

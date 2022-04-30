@@ -19,5 +19,5 @@ tap.test('escape', t => {
       escapes[key]
     );
   }
-  t.done();
+  t.end();
 });
