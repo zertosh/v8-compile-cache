@@ -18,6 +18,9 @@
   "files": [
     "v8-compile-cache.js"
   ],
+  "engines": {
+    "node": ">=5.7.0"
+  }
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
