@@ -20,8 +20,6 @@ The ability to tap into V8 to produce/consume this cache was introduced in [Node
   require('v8-compile-cache');
   ```
 
-**Requiring `v8-compile-cache` in Node <5.7.0 is a noop – but you need at least Node 4.0.0 to support the ES2015 syntax used by `v8-compile-cache`.**
-
 ## Options
 
 Set the environment variable `DISABLE_V8_COMPILE_CACHE=1` to disable the cache.
