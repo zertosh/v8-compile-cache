@@ -319,12 +319,14 @@ function getCacheDir() {
   const dirname = typeof process.getuid === 'function'
     ? 'v8-compile-cache-' + process.getuid()
     : 'v8-compile-cache';
+  // Avoid cache incompatibility issues with Rosetta on Apple Silicon.
+  const arch = process.arch;
   const version = typeof process.versions.v8 === 'string'
     ? process.versions.v8
     : typeof process.versions.chakracore === 'string'
       ? 'chakracore-' + process.versions.chakracore
       : 'node-' + process.version;
-  const cacheDir = path.join(os.tmpdir(), dirname, version);
+  const cacheDir = path.join(os.tmpdir(), dirname, arch, version);
   return cacheDir;
 }
 

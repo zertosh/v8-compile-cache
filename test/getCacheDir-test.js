@@ -14,7 +14,8 @@ tap.test('getCacheDir (v8)', t => {
   const nameParts = parts[1].split(path.sep);
 
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
-  t.equal(nameParts[2], process.versions.v8);
+  t.equal(nameParts[2], process.arch);
+  t.equal(nameParts[3], process.versions.v8);
 
   t.done();
 });
@@ -24,6 +25,7 @@ tap.test('getCacheDir (chakracore)', t => {
     '(' + getCacheDir.toString() + ')();',
     {
       process: {
+        arch: process.arch,
         getuid: process.getuid,
         versions: {chakracore: '1.2.3'},
         env: {},
@@ -37,7 +39,7 @@ tap.test('getCacheDir (chakracore)', t => {
   const nameParts = parts[1].split(path.sep);
 
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
-  t.equal(nameParts[2], 'chakracore-1.2.3');
+  t.equal(nameParts[3], 'chakracore-1.2.3');
 
   t.done();
 });
@@ -47,6 +49,7 @@ tap.test('getCacheDir (unknown)', t => {
     '(' + getCacheDir.toString() + ')();',
     {
       process: {
+        arch: process.arch,
         getuid: process.getuid,
         version: '1.2.3',
         versions: {},
@@ -60,7 +63,7 @@ tap.test('getCacheDir (unknown)', t => {
   const parts = cacheDir.split(os.tmpdir());
   const nameParts = parts[1].split(path.sep);
   t.match(nameParts[1], /^v8-compile-cache(-\d+)?$/);
-  t.equal(nameParts[2], 'node-1.2.3');
+  t.equal(nameParts[3], 'node-1.2.3');
 
   t.done();
 });
@@ -70,6 +73,7 @@ tap.test('getCacheDir (env)', t => {
     '(' + getCacheDir.toString() + ')();',
     {
       process: {
+        arch: process.arch,
         getuid: process.getuid,
         versions: {},
         env: {
