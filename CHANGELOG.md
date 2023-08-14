@@ -1,5 +1,9 @@
 # `v8-module-cache` Changelog
 
+## Next
+
+* Fix segmentation fault with Rosetta on Apple Silicon [#45](https://github.com/zertosh/v8-compile-cache/pull/45).
+
 ## 2021-03-05, Version 2.3.0
 
 * Fix use require.main instead of module.parent [#34](https://github.com/zertosh/v8-compile-cache/pull/34).
