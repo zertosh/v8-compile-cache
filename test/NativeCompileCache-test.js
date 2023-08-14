@@ -84,15 +84,17 @@ tap.test('when the cache changes it updates the new cache', t => {
   t.end();
 });
 
-tap.test('deletes previously cached code when the cache is an invalid file', t => {
+tap.test('replaces previously cached code when the cache is an invalid file', t => {
   fakeCacheStore.has = () => true;
   fakeCacheStore.get = () => Buffer.from('an invalid cache');
-  let deleteWasCalledWith = null;
-  fakeCacheStore.delete = arg => { deleteWasCalledWith = arg; };
+  // NOTE: When `script.cachedDataProduced` is true, `_cacheStore` is updated
+  // using `set` instead of `delete`.
+  let setWasCalledWith = null;
+  fakeCacheStore.set = arg => { setWasCalledWith = arg; };
 
   const fn3 = require('./fixtures/file-3');
 
-  t.equal(deleteWasCalledWith, require.resolve('./fixtures/file-3'));
+  t.equal(setWasCalledWith, require.resolve('./fixtures/file-3'));
   t.equal(fn3(), 3);
 
   t.end();
