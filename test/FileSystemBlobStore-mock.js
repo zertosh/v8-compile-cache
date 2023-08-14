@@ -20,7 +20,14 @@ module.exports = class FileSystemBlobStoreMock {
   }
 
   set(key, invalidationKey, buffer) {
-    this._cachedFiles.push({key, invalidationKey, buffer});
+    const entry = this._cachedFiles.find(
+      file => file.key === key && file.invalidationKey === invalidationKey
+    );
+    if (entry == null) {
+      this._cachedFiles.push({key, invalidationKey, buffer});
+    } else {
+      entry.buffer = buffer;
+    }
     return buffer;
   }
 
