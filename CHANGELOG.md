@@ -2,6 +2,10 @@
 
 ## Next
 
+
+
+## 2023-08-14, Version 2.4.0
+
 * Fix segmentation fault with Rosetta on Apple Silicon [#45](https://github.com/zertosh/v8-compile-cache/pull/45).
 
 ## 2021-03-05, Version 2.3.0
