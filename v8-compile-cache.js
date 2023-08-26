@@ -243,6 +243,10 @@ class NativeCompileCache {
       displayErrors: true,
       cachedData: buffer,
       produceCachedData: true,
+      // https://nodejs.org/api/vm.html#vm_new_vm_script_code_options
+      importModuleDynamically() {
+        throw new Error('[v8-compile-cache] Dynamic imports are currently not supported. See https://git.io/Jge6z for more information.')
+      }
     });
 
     if (script.cachedDataProduced) {
