@@ -17,18 +17,16 @@ let cachedFiles;
 let fakeCacheStore;
 let nativeCompileCache;
 
-tap.beforeEach(cb => {
+tap.beforeEach(() => {
   fakeCacheStore = new FileSystemBlobStore_mock();
   cachedFiles = fakeCacheStore._cachedFiles;
   nativeCompileCache = new NativeCompileCache();
   nativeCompileCache.setCacheStore(fakeCacheStore);
   nativeCompileCache.install();
-  cb();
 });
 
-tap.afterEach(cb => {
+tap.afterEach(() => {
   nativeCompileCache.uninstall();
-  cb();
 });
 
 tap.test('writes and reads from the cache storage when requiring files', t => {

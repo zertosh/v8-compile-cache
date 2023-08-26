@@ -2,7 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const rimraf = require('rimraf');
+const { promisify } = require('util');
+const rimraf = promisify(require('rimraf'));
 const tap = require('tap');
 const temp = require('temp');
 
@@ -14,15 +15,13 @@ temp.track();
 let storageDirectory;
 let blobStore;
 
-tap.beforeEach(cb => {
+tap.beforeEach(() => {
   storageDirectory = temp.path('filesystemblobstore');
   blobStore = new FileSystemBlobStore(storageDirectory);
-  cb();
 });
 
-tap.afterEach(cb => {
-  rimraf.sync(storageDirectory);
-  cb();
+tap.afterEach(() => {
+ return rimraf(storageDirectory);
 });
 
 tap.test('is empty when the file doesn\'t exist', t => {
@@ -62,7 +61,7 @@ tap.test('persists buffers when saved and retrieves them on load, giving priorit
   t.same(blobStore.get('foo', 'new-key'), Buffer.from('changed'));
   t.type(blobStore.get('foo', 'invalidation-key-1'), 'undefined');
 
-  t.done();
+  t.end();
 });
 
 tap.test('persists both in-memory and previously stored buffers when saved', t => {
