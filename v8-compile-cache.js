@@ -237,12 +237,35 @@ class NativeCompileCache {
 
     var buffer = this._cacheStore.get(filename, invalidationKey);
 
+    var _this = this;
+
     var script = new vm.Script(wrapper, {
       filename: filename,
       lineOffset: 0,
       displayErrors: true,
       cachedData: buffer,
       produceCachedData: true,
+      // Allow importing ESM with import() (otherwise throws "A dynamic import callback was not specified.")
+      // See https://nodejs.org/dist/latest-v20.x/docs/api/vm.html#new-vmscriptcode-options
+      // See https://github.com/nodejs/node/blob/3a6a80a4e1ad3fc3f1b181e1c94ecfd0b17e6dd1/test/parallel/test-vm-module-dynamic-import.js#L10
+      importModuleDynamically: function(specifier) {
+        // Disable cache if script uses dynamic imports (otherwise throws "Invalid host defined options")
+        _this._cacheStore.delete(filename);
+
+        // Resolve specifier in filename directory to allow importing local files
+        // There might be other paths to be included here
+        var paths = [
+          path.dirname(filename)
+        ].concat(require.resolve.paths(filename))
+        var resolved = require.resolve(specifier, { paths });
+
+        // This will only work on Node >=10.12.0
+        var url = require('url');
+        var importSpecifier = url.pathToFileURL(resolved)
+
+        // Dynamic import, should be supported by Node if importModuleDynamically is called
+        return import(importSpecifier);
+      },
     });
 
     if (script.cachedDataProduced) {
